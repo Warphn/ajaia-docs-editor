@@ -27,6 +27,7 @@ To try sharing, sign in as two people in different browsers (or one normal + one
 - **Autosave** with a visible status, `Ctrl/Cmd+S`, and protection against overwriting someone else's newer save.
 - **File import:** upload **`.txt`, `.md` or `.docx` (max 5 MB)** to create a new editable document. Headings, emphasis, lists, images (embedded) and Mermaid code fences are preserved; tables in `.docx` are flattened to text.
 - **Sharing:** the owner shares by email as **Can edit** or **View only**, changes roles, or removes access. Lists are split into **My documents** and **Shared with me**; viewers get a read-only editor.
+- **Team workspaces:** create a team for a project and add colleagues by email. Pick the team on the documents page to see its documents; new, template and imported documents created there belong to the team, and **every member can edit them** without per-document sharing. One person can be in several teams (demo: Alice is in *Mobile app* with Bob and *Platform* with Carol).
 
 ## Screenshots
 
@@ -71,7 +72,7 @@ Configuration: see [`apps/api/.env.example`](apps/api/.env.example) (`DATABASE_U
 npm test
 ```
 
-Runs 93 tests: API unit and integration tests (on an in-memory Postgres) and web unit tests. Details: [docs/testing.md](docs/testing.md).
+Runs 108 tests: API unit and integration tests (on an in-memory Postgres) and web unit tests. Details: [docs/testing.md](docs/testing.md).
 
 ## API Documentation (Swagger)
 
@@ -98,7 +99,7 @@ Deliberately out of scope for the 4–6 hour timebox:
 - **Real-time co-editing and presence** (Yjs/CRDT + WebSockets). Concurrent saves are detected (HTTP 409) and the user is asked to reload instead of merging.
 - Comments, suggestions, version history, export to Markdown.
 - Real-time merging of canvas edits (the canvas is last-write-wins).
-- Sign-up, password reset, organizations/teams.
+- Sign-up, password reset, organizations. Teams have no roles or member removal yet, and existing documents cannot be moved into a team.
 - File attachments and uploading arbitrary images (images come from canvas drawings and .docx imports).
 
 **Next, with 2–4 more hours:** real-time collaboration on the existing editor (Yjs + Hocuspocus, which TipTap supports), version history using the existing `version` column (snapshot per save), export to Markdown, and editable included drawings (keep the Excalidraw scene inside the image node).

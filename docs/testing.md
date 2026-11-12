@@ -13,7 +13,7 @@ Test where the risk is: access control, data integrity and the save loop. UI ren
 
 | Layer | File | What it proves |
 |---|---|---|
-| Unit | [`access-control.test.ts`](../apps/api/src/lib/access-control.test.ts) | Owner/editor/viewer/no-access resolution and each permission check |
+| Unit | [`access-control.test.ts`](../apps/api/src/lib/access-control.test.ts) | Owner/editor/viewer/no-access resolution, team members get edit access (stronger than a view-only share), each permission check |
 | Unit | [`sanitize-html.test.ts`](../apps/api/src/lib/sanitize-html.test.ts) | Supported formatting survives; scripts, event handlers and `javascript:` links are removed; embedded `data:image/*` images kept, remote/HTML/script image sources removed; only font-family styles kept; drawing ids kept |
 | Unit | [`file-to-html.test.ts`](../apps/api/src/modules/imports/file-to-html.test.ts) | .txt/.md/.docx conversion (a real .docx is built in memory), ` ```mermaid ` fences become diagram blocks, 415/400 errors |
 | Integration | [`documents-and-sharing.test.ts`](../apps/api/test/documents-and-sharing.test.ts) | Full flow through HTTP + SQL: login, create, save, reopen, 409 on stale version, share as viewer (read OK, edit 403), upgrade to editor, non-owner cannot share/delete, unrelated user gets 404, revoke, delete |
@@ -21,6 +21,7 @@ Test where the risk is: access control, data integrity and the save loop. UI ren
 | Unit | [`template-catalog.test.ts`](../apps/api/src/modules/templates/template-catalog.test.ts) | Every template only uses markup the editor supports (unchanged by the sanitizer), ids are unique |
 | Integration | [`templates.test.ts`](../apps/api/test/templates.test.ts) | Listing, creating from a template (title + content), explicit title wins, unknown template → 400 |
 | Integration | [`canvas.test.ts`](../apps/api/test/canvas.test.ts) | Canvas load/save, viewer read-only (403), no access (404), invalid scene (400), size limit (413), canvas never included in the document payload |
+| Integration | [`teams.test.ts`](../apps/api/test/teams.test.ts) | Seeded demo teams, create (name trimmed, empty → 400), add member by email (duplicate → 400, unknown email → 404, non-member → 404), create a document in a team (non-member → 404), members list and edit team documents without a share, non-members get 404 |
 | Integration | [`health.test.ts`](../apps/api/test/health.test.ts) | App boots, OpenAPI document is served |
 | Unit (web) | [`canvas-helpers.test.ts`](../apps/web/src/canvas/canvas-helpers.test.ts) | Page placement/drag math matches Excalidraw's, reset centering, selection export includes bound text and groups, drawing id shared by a selection, restoring dragged elements, save fingerprint ignores non-persistent changes |
 | Unit (web) | [`library-storage.test.ts`](../apps/web/src/canvas/library-storage.test.ts) | Shape library round-trips through browser storage; empty, corrupted or unavailable storage loads as an empty library; a failed save throws so Excalidraw can report it |

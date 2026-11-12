@@ -18,7 +18,11 @@ apps/web/src
 
 - **Server state** lives in TanStack Query (documents list, document, shares, current user). Mutations invalidate the affected queries. On login/logout the whole cache is cleared so one user's data never shows for another.
 - **Editor state** is owned by TipTap while a document is open. The document query uses `staleTime: Infinity` so a background refetch can never reset the cursor; after each save the cached copy is replaced with the server response.
-- **URL state:** the active tab (`?tab=shared`) so "Shared with me" is linkable.
+- **URL state:** the active tab (`?tab=shared`) and the selected team (`?team=<id>`), so both are linkable and survive reloads.
+
+## Team workspaces ([`DocumentsPage.tsx`](../apps/web/src/pages/DocumentsPage.tsx))
+
+A row of pills above the list switches between **Personal** (the existing *My documents* / *Shared with me* tabs) and each team the user belongs to; **New team** creates one and selects it. In a team, the list shows every document of the team, the member avatars open a dialog to add colleagues by email ([`TeamDialogs.tsx`](../apps/web/src/components/TeamDialogs.tsx)), and **New document**, **From template** and **Import file** create the document in that team. Owned team documents also appear under *My documents* with a team label, so nothing disappears from the personal view. Creating, importing or deleting refreshes both personal and team lists.
 
 ## Autosave ([`use-document-autosave.ts`](../apps/web/src/hooks/use-document-autosave.ts))
 

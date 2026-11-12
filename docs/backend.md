@@ -17,6 +17,7 @@ apps/api/src
     auth/           login, logout, me
     documents/      CRUD + document-access (single query for document + caller's access)
     shares/         list, grant/change role, revoke
+    teams/          project teams: list, create, add member, team documents; membership check
     imports/        file → HTML converters + multipart route
     templates/      template catalog (in code) + list route
     canvas/         whiteboard scene per document (load/save)
@@ -35,8 +36,8 @@ All routes except login/logout/health require the session cookie.
 | POST | `/api/auth/logout` | anyone | Clears the cookie |
 | GET | `/api/auth/me` | signed in | Current user |
 | GET | `/api/documents` | signed in | `{ owned, sharedWithMe }` |
-| POST | `/api/documents` | signed in | Create (optional `title`, optional `templateId`) |
-| POST | `/api/documents/import` | signed in | Multipart `file` (.txt/.md/.docx ≤ 5 MB) → new document |
+| POST | `/api/documents` | signed in | Create (optional `title`, `templateId`, `teamId`) |
+| POST | `/api/documents/import` | signed in | Multipart `file` (.txt/.md/.docx ≤ 5 MB) → new document; optional `?teamId=` |
 | GET | `/api/documents/:id` | any access | Document + caller's `access` + `version` |
 | PATCH | `/api/documents/:id` | owner, editor | Rename and/or save content; requires current `version` |
 | DELETE | `/api/documents/:id` | owner | Delete (cascades shares) |
@@ -46,6 +47,10 @@ All routes except login/logout/health require the session cookie.
 | GET | `/api/documents/:id/canvas` | any access | Whiteboard scene around the page (`null` until used) |
 | PUT | `/api/documents/:id/canvas` | owner, editor | Replace the scene (last write wins, ≤ 5 MB) |
 | GET | `/api/templates` | signed in | Template catalog (id, name, description, audience) |
+| GET | `/api/teams` | signed in | Teams I belong to, with members |
+| POST | `/api/teams` | signed in | Create a team (creator becomes its first member) |
+| POST | `/api/teams/:id/members` | team member | Add a member by email |
+| GET | `/api/teams/:id/documents` | team member | The team's documents (members can edit all of them) |
 | GET | `/api/health` | anyone | Health check (used by Render) |
 
 ## Error contract

@@ -95,6 +95,13 @@ Each entry: decision, alternatives considered, tradeoff, reason.
 - **Tradeoff:** the library does not follow the user to another browser or device.
 - **Reason:** the library is a personal toolbox, like the page lock, not document data; browser storage fixes the bug with no API or schema change. Moving it to the API later only means swapping the adapter.
 
-### 18. Accepted dependency advisories
+### 18. Team workspaces: membership grants edit access
+- **Context:** product-owner request: one employee works on several projects with different people; the list should be scoped by team.
+- **Decision:** `teams` + `team_members` tables and a nullable `documents.team_id`. A document belongs to at most one team; **every member can edit** it, the creator stays its owner (delete, sharing). Any member can add colleagues by email. Documents enter a team when created there (new, template, import). Choices made by the product owner from three options presented.
+- **Alternatives:** view-only membership with per-document sharing for edits (less useful day to day); admin role per team (more rules and screens); moving existing documents between teams (more UI and edge cases).
+- **Tradeoffs:** no member removal or roles yet; a removed user would need a database change. Team access is resolved in the same single query as owner and shares, so it adds one `LEFT JOIN`, not an extra round trip. Non-members get 404, like private documents.
+- **Reason:** the smallest model that makes teams useful, built on the existing access rule (one more input to `resolveAccess`) instead of copying shares to every member, which would go stale as members join.
+
+### 19. Accepted dependency advisories
 `npm audit` reports moderate advisories in `drizzle-kit`'s bundled esbuild (dev server issue). `drizzle-kit` is a dev-only CLI for generating migrations; it is not part of the running app. Accepted.
 Excalidraw 0.18.1 pins older versions of `mermaid`/`langium`/`lodash-es` (used only by its optional "Mermaid to Excalidraw" dialog) and `nanoid`. They run in the browser on the user's own input, and the only offered fix is downgrading Excalidraw. Accepted until an upstream release; non-breaking fixes were applied with `npm audit fix`.

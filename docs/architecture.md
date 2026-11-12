@@ -9,7 +9,7 @@ Priorities, in order:
 1. **A complete, reliable core loop:** sign in → create/import → write with formatting → autosave → share → recipient opens it. Every step works end to end, persists, and handles errors explicitly.
 2. **Access logic that is correct by construction:** one access rule, enforced on the server, tested through HTTP and SQL.
 3. **A deployed build reviewers can use in minutes:** one URL, seeded accounts, no setup.
-4. **Tech-team differentiators**, only on top of a working deployed core: document templates for recurring deliverables, then Mermaid diagrams.
+4. **Tech-team differentiators**, only on top of a working deployed core: document templates for recurring deliverables, then Mermaid diagrams, the canvas, and team workspaces (one person, several projects).
 
 Deliberately not built (see [decisions](./decisions.md) and the README for the full list): real-time co-editing, comments, version history, sign-up.
 
@@ -54,6 +54,7 @@ flowchart LR
 | Content safety | `apps/api/src/lib/sanitize-html.ts` | Allowlist mirrors the editor's features |
 | File import | `apps/api/src/modules/imports/` | marked (.md), mammoth (.docx), escaped text |
 | Save loop | `apps/web/src/hooks/use-document-autosave.ts` | Debounce, version chaining, conflict handling |
+| Team workspaces | `apps/api/src/modules/teams/`, `apps/web/src/pages/DocumentsPage.tsx` | Membership = edit access, resolved in the same query as owner/shares |
 
 Details: [backend](./backend.md) · [frontend](./frontend.md) · [database](./database/database.md) · [testing](./testing.md).
 

@@ -15,7 +15,7 @@ All passwords: `demo1234` (the login page also has one-click buttons).
 
 | Account | Use it to |
 |---|---|
-| `alice@ajaia.dev` | Owner of "Welcome to Ajaia Docs", already shared with Bob as editor |
+| `alice@ajaia.dev` | Owner of "Welcome to Ajaia Docs", already shared with Bob as editor; member of the *Mobile app* (with Bob) and *Platform* (with Carol) teams |
 | `bob@ajaia.dev` | See a document under **Shared with me** and edit it |
 | `carol@ajaia.dev` | Start from zero: share a document with Alice or Bob as **View only** and open it as them |
 
@@ -31,7 +31,7 @@ All passwords: `demo1234` (the login page also has one-click buttons).
 | Screenshots | [`docs/screenshots/`](docs/screenshots) (also embedded in the README) |
 | Module documentation | [`docs/backend.md`](docs/backend.md), [`docs/frontend.md`](docs/frontend.md), [`docs/database/database.md`](docs/database/database.md) (+ ER diagram), [`docs/testing.md`](docs/testing.md) |
 | Deployment definition | [`render.yaml`](render.yaml) (Render Blueprint: web service + Postgres) |
-| Automated tests | 93 tests, run with `npm test` ([strategy](docs/testing.md)) |
+| Automated tests | 108 tests, run with `npm test` ([strategy](docs/testing.md)) |
 | Original brief | [`docs/assignment-brief.md`](docs/assignment-brief.md) |
 
 ## Status
@@ -40,6 +40,7 @@ All passwords: `demo1234` (the login page also has one-click buttons).
 - Create, rename, edit, delete and reopen documents with rich text (headings, bold, italic, underline, strikethrough, lists, quotes, code blocks), autosave and conflict protection.
 - File import: `.txt`, `.md`, `.docx` (max 5 MB) become new editable documents.
 - Sharing by email with **Can edit** / **View only** roles; owned vs shared lists; read-only editor for viewers; revoke access.
+- Team workspaces: create a team per project, add members by email, list the team's documents; documents created in a team are editable by all its members.
 - Persistence in PostgreSQL; formatting preserved across reloads.
 - Templates for tech-team documents (feature spec, RFC, client presentation, management update, postmortem).
 - Mermaid diagrams in documents, with live-preview editing.
@@ -47,6 +48,6 @@ All passwords: `demo1234` (the login page also has one-click buttons).
 - A4 pages with page-break guides while editing; Export PDF prints exactly that layout (page only, no browser header/footer).
 - Fonts: IBM Plex Sans (default), Arial, Times New Roman, Georgia, Roboto, Courier New.
 
-**Incomplete / intentionally out of scope:** real-time co-editing and presence (concurrent text saves are detected and the user reloads; the canvas is last-write-wins), comments, version history, Markdown export, sign-up and password reset, file attachments. Included drawings are static images (edit on the canvas and include again).
+**Incomplete / intentionally out of scope:** real-time co-editing and presence (concurrent text saves are detected and the user reloads; the canvas is last-write-wins), comments, version history, Markdown export, sign-up and password reset, file attachments, team roles and member removal, moving existing documents into a team. Included drawings are static images (edit on the canvas and include again).
 
 **Next 2–4 hours:** real-time collaboration with Yjs + Hocuspocus on the existing TipTap editor; version history built on the existing `version` column (one snapshot per save, restore); export to Markdown; editable included drawings (keep the Excalidraw scene inside the image node).
