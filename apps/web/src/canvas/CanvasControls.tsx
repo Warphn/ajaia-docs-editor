@@ -6,6 +6,8 @@ interface CanvasControlsProps {
   canEdit: boolean;
   isDrawing: boolean;
   canvasSaveStatus: CanvasSaveStatus;
+  /** Extra space on the right, in px, taken by Excalidraw's open sidebar. */
+  rightOffset: number;
   onToggleDrawing: () => void;
   onToggleLock: () => void;
   onResetPosition: () => void;
@@ -14,12 +16,17 @@ interface CanvasControlsProps {
 
 /** Floating page controls, bottom-right (Excalidraw keeps its zoom/undo controls bottom-left). */
 export function CanvasControls(props: CanvasControlsProps) {
-  const { isLocked, canEdit, isDrawing, canvasSaveStatus, onToggleDrawing, onToggleLock, onResetPosition, onPrint } = props;
+  const { isLocked, canEdit, isDrawing, canvasSaveStatus, rightOffset } = props;
+  const { onToggleDrawing, onToggleLock, onResetPosition, onPrint } = props;
   const buttonClasses =
     'inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-sm text-ink-muted transition-colors hover:bg-canvas hover:text-ink';
+  const edgeGap = 16;
 
   return (
-    <div className="print-hidden absolute bottom-4 right-4 z-5 flex items-center gap-1 rounded-lg border border-line bg-sheet p-1 shadow-sm">
+    <div
+      className="print-hidden absolute bottom-4 z-5 flex items-center gap-1 rounded-lg border border-line bg-sheet p-1 shadow-sm"
+      style={{ right: edgeGap + rightOffset }}
+    >
       {canvasSaveStatus === 'error' && (
         <span role="alert" className="flex items-center gap-1 px-2 text-xs text-danger">
           <AlertTriangle size={14} aria-hidden="true" />
