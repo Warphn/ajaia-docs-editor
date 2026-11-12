@@ -60,11 +60,13 @@ The plan ([architecture](./architecture.md)) split the work into commit-sized st
 | Header layout | Browser screenshot at 390 px showed the title input squeezed to 0 px. Fixed with a compact header (logo-only, icon sign-out) | Found by verification, not by reading code |
 | Neon as the production database (AI plan) | Replaced by a Render Postgres declared in `render.yaml` when the human hit a Vercel-only sign-up flow at deploy time | Fewer accounts and zero manual wiring outweigh the 30-day expiry of the free database |
 | Rendering diagrams in a dialog opened from inside the editor | Dialog moved to a React portal on `<body>` before it shipped | Inputs inside ProseMirror's DOM can be captured by the editor; a portal keeps the textarea independent |
+| Canvas spike before coding | Read Excalidraw 0.18's `.d.ts` and built CSS first: confirmed `onScrollChange`/`updateScene`/`exportToSvg`, that its root creates no stacking context (so the page can sit at z-index 3 between canvas and toolbars), and that keyboard/paste handlers ignore focus outside its container | Avoided building on guessed APIs and an input-capture bug |
+| Excalidraw install | The app went blank: npm installed React 18 for an Excalidraw sub-dependency next to the app's React 19. Diagnosed from the error ("reading 'useEffect' of null") and `npm explain`; an npm `overrides` attempt failed, the fix was pinning React 19 at the workspace root (single copy) plus Vite `dedupe`, verified with a clean `npm ci` | Found by the browser check, not by type-checking or unit tests |
 | Initial bundle of 732 kB (230 kB gzip) | Editor route lazy-loaded → 316 kB (100 kB gzip) initial | Login and list don't need ProseMirror |
 
 ## How correctness, UX and reliability were verified
 
-- **Automated:** 60 tests (`npm test`): access rules, sanitizer, importers, full sharing flow over HTTP + SQL, import endpoint limits, autosave behavior. See [testing](./testing.md).
+- **Automated:** 79 tests (`npm test`): access rules, sanitizer, importers, full sharing flow over HTTP + SQL, import endpoint limits, autosave behavior. See [testing](./testing.md).
 - **Database parity:** the same integration suite passed on PGlite and on Postgres 17 (Docker), covering both production and local drivers.
 - **Types and build:** strict TypeScript (`noUncheckedIndexedAccess`) and production builds of both apps on every step.
 - **Real browser:** a scripted Chrome walkthrough as two users (owner shares → recipient sees it under "Shared with me", read-only), reload to confirm formatting persists, mobile viewport check, and no unexpected console errors.
@@ -94,6 +96,8 @@ The plan ([architecture](./architecture.md)) split the work into commit-sized st
 | 17:40 | Templates (5 tech-team documents) |
 | 17:55 | Mermaid diagrams (editor node, live-preview dialog, Markdown import) |
 | 18:05 | Templates and diagrams verified live; SUBMISSION.md, screenshots |
+| — | Second iteration requested by the product owner: canvas around the page (plan → user chose draggable page + saved canvas) |
+| +1h45 | Canvas API, Excalidraw workspace, include-in-document, lock/reset, print-only-page, docs |
 
 ## Out of scope, and what's next with 2–4 more hours
 

@@ -31,7 +31,7 @@ All passwords: `demo1234` (the login page also has one-click buttons).
 | Screenshots | [`docs/screenshots/`](docs/screenshots) (also embedded in the README) |
 | Module documentation | [`docs/backend.md`](docs/backend.md), [`docs/frontend.md`](docs/frontend.md), [`docs/database/database.md`](docs/database/database.md) (+ ER diagram), [`docs/testing.md`](docs/testing.md) |
 | Deployment definition | [`render.yaml`](render.yaml) (Render Blueprint: web service + Postgres) |
-| Automated tests | 60 tests, run with `npm test` ([strategy](docs/testing.md)) |
+| Automated tests | 79 tests, run with `npm test` ([strategy](docs/testing.md)) |
 | Original brief | [`docs/assignment-brief.md`](docs/assignment-brief.md) |
 
 ## Status
@@ -43,7 +43,8 @@ All passwords: `demo1234` (the login page also has one-click buttons).
 - Persistence in PostgreSQL; formatting preserved across reloads.
 - Templates for tech-team documents (feature spec, RFC, client presentation, management update, postmortem).
 - Mermaid diagrams in documents, with live-preview editing.
+- Canvas around the page (≥ 768 px): draw with Excalidraw, include drawings by click or drag, move/lock/reset the page, drawings saved with the document; Export PDF prints only the page.
 
-**Incomplete / intentionally out of scope:** real-time co-editing and presence (concurrent saves are detected and the user reloads instead of merging), comments, version history, export, sign-up and password reset, images and attachments.
+**Incomplete / intentionally out of scope:** real-time co-editing and presence (concurrent text saves are detected and the user reloads; the canvas is last-write-wins), comments, version history, Markdown export, sign-up and password reset, file attachments. Included drawings are static images (edit on the canvas and include again).
 
 **Next 2–4 hours:** real-time collaboration with Yjs + Hocuspocus on the existing TipTap editor; version history built on the existing `version` column (one snapshot per save, restore); export to Markdown and PDF.

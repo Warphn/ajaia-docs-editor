@@ -20,9 +20,11 @@ To try sharing, sign in as two people in different browsers (or one normal + one
 - **Documents:** create, rename (inline title), edit, delete; reopen with formatting intact.
 - **Templates for tech teams:** start a document from a feature spec, technical design (RFC), client feature presentation, status update for management, or incident postmortem.
 - **Rich text:** headings (H1–H3), bold, italic, underline, strikethrough, bulleted and numbered lists, quotes, code blocks, undo/redo, keyboard shortcuts.
+- **Canvas around the page:** the dotted background is a whiteboard (Excalidraw). Sketch diagrams next to the text, then click **Include in document** or drag it onto the page to embed the drawing. The page can be dragged around the canvas, locked in place, or reset. Drawings are saved with the document and visible to everyone with access (read-only for viewers). Screens narrower than 768 px use the classic layout.
+- **Export PDF:** prints only the page (never the canvas), using the browser's "Save as PDF".
 - **Diagrams as code:** insert a Mermaid diagram (flowchart, sequence, ER…) and edit it with a live preview. ` ```mermaid ` blocks in imported Markdown become diagrams.
 - **Autosave** with a visible status, `Ctrl/Cmd+S`, and protection against overwriting someone else's newer save.
-- **File import:** upload **`.txt`, `.md` or `.docx` (max 5 MB)** to create a new editable document. Headings, emphasis, lists and Mermaid code fences are preserved; images and tables in `.docx` are not supported.
+- **File import:** upload **`.txt`, `.md` or `.docx` (max 5 MB)** to create a new editable document. Headings, emphasis, lists, images (embedded) and Mermaid code fences are preserved; tables in `.docx` are flattened to text.
 - **Sharing:** the owner shares by email as **Can edit** or **View only**, changes roles, or removes access. Lists are split into **My documents** and **Shared with me**; viewers get a read-only editor.
 
 ## Screenshots
@@ -32,6 +34,8 @@ To try sharing, sign in as two people in different browsers (or one normal + one
 | ![Editor with formatting and autosave](docs/screenshots/editor.png) | ![Share dialog with roles](docs/screenshots/share-dialog.png) |
 | **Shared with me** (recipient's view) | **View-only** access |
 | ![Shared with me list](docs/screenshots/shared-with-me.png) | ![Read-only editor for viewers](docs/screenshots/view-only.png) |
+| **Canvas: drawings around the page** | **Draw, then include in the document** |
+| ![Canvas with drawings around the page](docs/screenshots/canvas.png) | ![Include drawing in document](docs/screenshots/canvas-include.png) |
 | **Templates** | **Mermaid diagrams** |
 | ![Template gallery](docs/screenshots/templates.png) | ![Diagram editor with live preview](docs/screenshots/diagram-editor.png) |
 
@@ -64,7 +68,7 @@ Configuration: see [`apps/api/.env.example`](apps/api/.env.example) (`DATABASE_U
 npm test
 ```
 
-Runs 60 tests: API unit and integration tests (on an in-memory Postgres) and web unit tests. Details: [docs/testing.md](docs/testing.md).
+Runs 79 tests: API unit and integration tests (on an in-memory Postgres) and web unit tests. Details: [docs/testing.md](docs/testing.md).
 
 ## API Documentation (Swagger)
 
@@ -89,9 +93,10 @@ Free-tier limits: the web service sleeps after ~15 minutes idle (the first reque
 Deliberately out of scope for the 4–6 hour timebox:
 
 - **Real-time co-editing and presence** (Yjs/CRDT + WebSockets). Concurrent saves are detected (HTTP 409) and the user is asked to reload instead of merging.
-- Comments, suggestions, version history, export.
+- Comments, suggestions, version history, export to Markdown.
+- Real-time merging of canvas edits (the canvas is last-write-wins).
 - Sign-up, password reset, organizations/teams.
-- Attachments and images inside documents.
+- File attachments and uploading arbitrary images (images come from canvas drawings and .docx imports).
 
 **Next, with 2–4 more hours:** real-time collaboration on the existing editor (Yjs + Hocuspocus, which TipTap supports), version history using the existing `version` column (snapshot per save), and export to Markdown/PDF.
 

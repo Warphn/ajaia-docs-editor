@@ -68,5 +68,14 @@ Each entry: decision, alternatives considered, tradeoff, reason.
 - **Tradeoff:** No freehand drawing; users write a small text syntax (mitigated by starter examples and live preview).
 - **Reason:** Engineers already write Mermaid (GitHub renders it), the source is plain text that survives sanitization and diffs, and the library is loaded on demand. Excalidraw would add ~1–2 MB and a canvas-based data model. Storing only the source means diagrams always re-render with current styles; ` ```mermaid ` fences in imported Markdown become diagrams for free.
 
-### 14. Accepted dependency advisories
+### 14. Canvas around the page with Excalidraw
+- **Context:** after shipping, the Mermaid dialog proved impractical for quick sketches; the product owner asked for an Excalidraw-like canvas using the dotted background, with drag/click to include drawings, a movable page (lock/reset) and page-only printing.
+- **Decision:** embed `@excalidraw/excalidraw` as the background and render the page as a DOM overlay positioned with the canvas' scroll/zoom. Reverses the earlier "no Excalidraw" call (decision 13): the cost (≈ 347 kB gzip) is now justified by an explicit product need and is paid only when the canvas opens.
+- **Alternatives:** a hand-built SVG drawing tool (hours of work for a worse result); rendering the page inside Excalidraw as an embeddable/iframe (the rich-text editor would lose focus handling and selection).
+- **Tradeoffs:** the canvas is **last-write-wins** (no merge between simultaneous editors); included drawings are **static images** (edit on the canvas and include again); below 768 px the classic layout is used.
+- **Storage:** the scene is a `jsonb` column on `documents`, saved through its own endpoint and excluded from document queries. Included drawings are SVG `data:` URIs inside the HTML, so sharing, printing and export need no extra storage or access rules; the sanitizer only accepts `data:image/*` sources.
+- **Page lock** is a per-browser preference, not document data, so one person locking the page never blocks a collaborator.
+
+### 15. Accepted dependency advisories
 `npm audit` reports moderate advisories in `drizzle-kit`'s bundled esbuild (dev server issue). `drizzle-kit` is a dev-only CLI for generating migrations; it is not part of the running app. Accepted.
+Excalidraw 0.18.1 pins older versions of `mermaid`/`langium`/`lodash-es` (used only by its optional "Mermaid to Excalidraw" dialog) and `nanoid`. They run in the browser on the user's own input, and the only offered fix is downgrading Excalidraw. Accepted until an upstream release; non-breaking fixes were applied with `npm audit fix`.

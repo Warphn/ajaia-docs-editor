@@ -19,6 +19,7 @@ apps/api/src
     shares/         list, grant/change role, revoke
     imports/        file → HTML converters + multipart route
     templates/      template catalog (in code) + list route
+    canvas/         whiteboard scene per document (load/save)
     users/          public user schema, email normalization
 ```
 
@@ -42,6 +43,8 @@ All routes except login/logout/health require the session cookie.
 | GET | `/api/documents/:id/shares` | any access | People with access |
 | POST | `/api/documents/:id/shares` | owner | Share by email with `viewer`/`editor` (upsert) |
 | DELETE | `/api/documents/:id/shares/:userId` | owner | Revoke |
+| GET | `/api/documents/:id/canvas` | any access | Whiteboard scene around the page (`null` until used) |
+| PUT | `/api/documents/:id/canvas` | owner, editor | Replace the scene (last write wins, ≤ 5 MB) |
 | GET | `/api/templates` | signed in | Template catalog (id, name, description, audience) |
 | GET | `/api/health` | anyone | Health check (used by Render) |
 
@@ -61,7 +64,8 @@ Every error is JSON `{ "error": "<CODE>", "message": "<human readable>" }`.
 
 ## Security notes
 
-- **Stored XSS:** content (editor saves and imports) passes an allowlist sanitizer before storage ([`sanitize-html.ts`](../apps/api/src/lib/sanitize-html.ts)); links get `rel="noopener noreferrer nofollow"`.
+- **Stored XSS:** content (editor saves and imports) passes an allowlist sanitizer before storage ([`sanitize-html.ts`](../apps/api/src/lib/sanitize-html.ts)); links get `rel="noopener noreferrer nofollow"`. Images are only accepted as `data:image/(png|jpeg|gif|webp|svg+xml)` URIs: no remote URLs (no tracking pixels), and SVG inside `<img>` cannot run scripts.
+- **Payload limits:** document saves up to 10 MB (embedded images), canvas saves up to 5 MB, imports 5 MB. The canvas column is excluded from document queries so text autosaves never load it.
 - **Sessions:** JWT signed with `JWT_SECRET` (required in production), httpOnly, `SameSite=Lax`, `Secure` in production, 7-day expiry.
 - **Passwords:** bcrypt hashes; demo password is public by design.
 - Out of scope: rate limiting, CSRF tokens beyond SameSite, password reset.
