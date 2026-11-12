@@ -1,0 +1,88 @@
+import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
+import fastifySwagger from '@fastify/swagger';
+import fastifySwaggerUi from '@fastify/swagger-ui';
+import {
+  hasZodFastifySchemaValidationErrors,
+  jsonSchemaTransform,
+  serializerCompiler,
+  validatorCompiler,
+  type ZodTypeProvider,
+} from 'fastify-type-provider-zod';
+import { z } from 'zod';
+import type { Database } from './db/client.js';
+import { AppError, type ErrorResponse } from './lib/errors.js';
+
+export interface AppOptions {
+  db: Database;
+  jwtSecret: string;
+  isProduction: boolean;
+  /** Absolute path of the built web app; when set, the SPA is served from the same origin. */
+  webDistDir?: string | undefined;
+  logger?: boolean;
+}
+
+export const SWAGGER_UI_PATH = '/api/docs';
+
+export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
+  const app = Fastify({ logger: options.logger ?? false, trustProxy: true });
+
+  app.setValidatorCompiler(validatorCompiler);
+  app.setSerializerCompiler(serializerCompiler);
+  app.setErrorHandler(handleError);
+
+  await app.register(fastifySwagger, {
+    openapi: {
+      info: {
+        title: 'Ajaia Docs API',
+        description:
+          'REST API for Ajaia Docs: documents, sharing, file import and templates. ' +
+          'Authentication uses an httpOnly session cookie set by POST /api/auth/login.',
+        version: '1.0.0',
+      },
+      tags: [
+        { name: 'health', description: 'Service status' },
+      ],
+    },
+    transform: jsonSchemaTransform,
+  });
+  await app.register(fastifySwaggerUi, { routePrefix: SWAGGER_UI_PATH });
+
+  app.withTypeProvider<ZodTypeProvider>().get(
+    '/api/health',
+    {
+      schema: {
+        tags: ['health'],
+        summary: 'Health check',
+        response: { 200: z.object({ status: z.literal('ok') }) },
+      },
+    },
+    async () => ({ status: 'ok' as const }),
+  );
+
+  return app;
+}
+
+function handleError(error: FastifyError, _request: unknown, reply: import('fastify').FastifyReply) {
+  if (error instanceof AppError) {
+    return reply.status(error.statusCode).send(toErrorBody(error.errorCode, error.message));
+  }
+
+  if (hasZodFastifySchemaValidationErrors(error)) {
+    const details = error.validation
+      .map((issue) => `${issue.instancePath || error.validationContext || 'request'}: ${issue.message}`)
+      .join('; ');
+    return reply.status(400).send(toErrorBody('VALIDATION_ERROR', details));
+  }
+
+  // Errors raised by Fastify itself or its plugins (e.g. body too large, bad content type) carry a 4xx status.
+  if (error.statusCode && error.statusCode >= 400 && error.statusCode < 500) {
+    return reply.status(error.statusCode).send(toErrorBody(error.code ?? 'REQUEST_ERROR', error.message));
+  }
+
+  reply.log.error(error);
+  return reply.status(500).send(toErrorBody('INTERNAL_ERROR', 'Something went wrong. Please try again.'));
+}
+
+function toErrorBody(errorCode: string, message: string): ErrorResponse {
+  return { error: errorCode, message };
+}
