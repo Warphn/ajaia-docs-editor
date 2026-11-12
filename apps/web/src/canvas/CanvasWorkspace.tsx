@@ -1,4 +1,10 @@
-import { CaptureUpdateAction, Excalidraw, newElementWith } from '@excalidraw/excalidraw';
+import {
+  CaptureUpdateAction,
+  Excalidraw,
+  newElementWith,
+  parseLibraryTokensFromUrl,
+  useHandleLibrary,
+} from '@excalidraw/excalidraw';
 import '@excalidraw/excalidraw/index.css';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
@@ -6,6 +12,7 @@ import type { CanvasScene } from '../api/types';
 import { CanvasControls } from './CanvasControls';
 import { exportElementsAsImage } from './export-drawing';
 import { IncludeDrawingChip } from './IncludeDrawingChip';
+import { createLibraryStorageAdapter } from './library-storage';
 import {
   gridBackgroundStyle,
   movePage,
@@ -29,6 +36,7 @@ import { usePageLock } from './use-page-lock';
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 4;
+const libraryStorageAdapter = createLibraryStorageAdapter();
 
 /** Where an included drawing should land: the editor cursor, or a point on screen (drag and drop). */
 export type DropPoint = { clientX: number; clientY: number };
@@ -65,10 +73,14 @@ export function CanvasWorkspace(props: CanvasWorkspaceProps) {
   const workspaceRef = useRef<HTMLDivElement>(null);
   const pageRef = useRef<HTMLDivElement>(null);
   const excalidrawAPIRef = useRef<ExcalidrawImperativeAPI | null>(null);
+  // Also kept as state: useHandleLibrary only starts once the API exists.
+  const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null);
   const pagePositionRef = useRef<Point>(initialScene?.pagePosition ?? PAGE_ORIGIN);
   const [pagePosition, setPagePosition] = useState<Point>(pagePositionRef.current);
   const [viewport, setViewport] = useState<CanvasViewport>({ scrollX: 0, scrollY: 0, zoom: 1 });
-  const [isDrawing, setIsDrawing] = useState(false);
+  // Coming back from libraries.excalidraw.com ("#addLibrary=…"): open in drawing mode, because the
+  // library sidebar that shows the installed items is hidden in writing (view) mode.
+  const [isDrawing, setIsDrawing] = useState(() => canEdit && parseLibraryTokensFromUrl() !== null);
   const isDrawingRef = useRef(isDrawing);
   isDrawingRef.current = isDrawing;
   const [selection, setSelection] = useState<{ size: number; drawingId: string | null }>({ size: 0, drawingId: null });
@@ -76,6 +88,9 @@ export function CanvasWorkspace(props: CanvasWorkspaceProps) {
   const { isLocked, toggleLock } = usePageLock(documentId);
   const viewportRef = useRef(viewport);
   viewportRef.current = viewport;
+
+  // Installs libraries returned by libraries.excalidraw.com and persists the library in this browser.
+  useHandleLibrary({ excalidrawAPI, adapter: libraryStorageAdapter });
 
   const canvasAutosave = useCanvasAutosave(
     documentId,
@@ -335,6 +350,7 @@ export function CanvasWorkspace(props: CanvasWorkspaceProps) {
       <Excalidraw
         excalidrawAPI={(excalidrawAPI) => {
           excalidrawAPIRef.current = excalidrawAPI;
+          setExcalidrawAPI(excalidrawAPI);
           handleCanvasPointerUp(excalidrawAPI);
           // Start with the page centered, whatever position it was saved at.
           requestAnimationFrame(() => centerOnPage(pagePositionRef.current));
