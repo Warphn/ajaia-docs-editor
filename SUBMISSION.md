@@ -31,7 +31,7 @@ All passwords: `demo1234` (the login page also has one-click buttons).
 | Screenshots | [`docs/screenshots/`](docs/screenshots) (also embedded in the README) |
 | Module documentation | [`docs/backend.md`](docs/backend.md), [`docs/frontend.md`](docs/frontend.md), [`docs/database/database.md`](docs/database/database.md) (+ ER diagram), [`docs/testing.md`](docs/testing.md) |
 | Deployment definition | [`render.yaml`](render.yaml) (Render Blueprint: web service + Postgres) |
-| Automated tests | 112 tests, run with `npm test` ([strategy](docs/testing.md)) |
+| Automated tests | 127 tests, run with `npm test` ([strategy](docs/testing.md)) |
 | Original brief | [`docs/assignment-brief.md`](docs/assignment-brief.md) |
 
 ## Status
@@ -46,8 +46,9 @@ All passwords: `demo1234` (the login page also has one-click buttons).
 - Mermaid diagrams in documents, with live-preview editing.
 - Canvas around the page (≥ 768 px): drawing mode with Excalidraw tools, drag a drawing onto the page or click to include, same button removes it, move/lock/reset the page, drawings saved with the document.
 - A4 pages with page-break guides while editing; Export PDF prints exactly that layout (page only, no browser header/footer).
+- Export to Markdown (`.md` download; Mermaid diagrams kept as fences, so an export can be imported back).
 - Fonts: IBM Plex Sans (default), Arial, Times New Roman, Georgia, Roboto, Courier New.
 
-**Incomplete / intentionally out of scope:** real-time co-editing and presence (concurrent text saves are detected and the user reloads; the canvas is last-write-wins), comments, version history, Markdown export, sign-up and password reset, file attachments, team roles and member removal, moving existing documents into a team. Included drawings are static images (edit on the canvas and include again).
+**Incomplete / intentionally out of scope:** real-time co-editing and presence (concurrent text saves are detected and the user reloads; the canvas is last-write-wins), comments, version history, sign-up and password reset, file attachments, team roles and member removal, moving existing documents into a team. Included drawings are static images (edit on the canvas and include again).
 
-**Next 2–4 hours:** real-time collaboration with Yjs + Hocuspocus on the existing TipTap editor; version history built on the existing `version` column (one snapshot per save, restore); export to Markdown; editable included drawings (keep the Excalidraw scene inside the image node).
+**Next 2–4 hours:** real-time collaboration with Yjs + Hocuspocus on the existing TipTap editor; version history built on the existing `version` column (one snapshot per save, restore); editable included drawings (keep the Excalidraw scene inside the image node).

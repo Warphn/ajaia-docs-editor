@@ -69,7 +69,7 @@ Every error is JSON `{ "error": "<CODE>", "message": "<human readable>" }`.
 
 ## Security notes
 
-- **Stored XSS:** content (editor saves and imports) passes an allowlist sanitizer before storage ([`sanitize-html.ts`](../apps/api/src/lib/sanitize-html.ts)); links get `rel="noopener noreferrer nofollow"`. Images are only accepted as `data:image/(png|jpeg|gif|webp|svg+xml)` URIs: no remote URLs (no tracking pixels), and SVG inside `<img>` cannot run scripts. `<span style>` is allowed only with a `font-family` made of font names (no `url()`, no `;`), and `data-drawing-id` is kept on images to link them to the canvas.
+- **Stored XSS:** content (editor saves and imports) passes an allowlist sanitizer before storage ([`sanitize-html.ts`](../apps/api/src/lib/sanitize-html.ts)); links get `rel="noopener noreferrer nofollow"`. Images are only accepted as `data:image/(png|jpeg|gif|webp|svg+xml)` URIs: no remote URLs (no tracking pixels), and SVG inside `<img>` cannot run scripts. `<span style>` is allowed only with a `font-family` made of font names (no `url()`, no `;`), `<code>` keeps only `language-*` classes (code-block language), `<del>`/`<strike>` become `<s>`, and `data-drawing-id` is kept on images to link them to the canvas.
 - **Payload limits:** document saves up to 10 MB (embedded images), canvas saves up to 5 MB, imports 5 MB. The canvas column is excluded from document queries so text autosaves never load it.
 - **Sessions:** JWT signed with `JWT_SECRET` (required in production), httpOnly, `SameSite=Lax`, `Secure` in production, 7-day expiry.
 - **Passwords:** bcrypt hashes; demo password is public by design.

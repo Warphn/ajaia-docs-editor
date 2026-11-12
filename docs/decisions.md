@@ -102,6 +102,13 @@ Each entry: decision, alternatives considered, tradeoff, reason.
 - **Tradeoffs:** no member removal or roles yet; a removed user would need a database change. Team access is resolved in the same single query as owner and shares, so it adds one `LEFT JOIN`, not an extra round trip. Non-members get 404, like private documents.
 - **Reason:** the smallest model that makes teams useful, built on the existing access rule (one more input to `resolveAccess`) instead of copying shares to every member, which would go stale as members join.
 
-### 19. Accepted dependency advisories
+### 19. Markdown export in the browser with Turndown
+- **Context:** optional stretch goal ("Export to PDF or Markdown"); PDF already existed.
+- **Decision:** convert the editor's current HTML to GitHub-flavored Markdown in the browser with Turndown (pinned to 7.2.4, a release older than two weeks) plus four rules: Mermaid blocks become ` ```mermaid ` fences (the importer's format, so exports round-trip), `<s>` becomes `~~`, underline stays as inline `<u>` (Markdown has none), and tight lists with one space after the marker. The file is named after the document title.
+- **Alternatives:** a server endpoint (an extra route and round trip for data the browser already has, and it would miss unsaved edits); a hand-written ProseMirror serializer (more code to own for the same output); TipTap's Markdown extension (also changes how the editor parses content).
+- **Tradeoffs:** included drawings and .docx pictures stay as `data:image` URIs: nothing is lost and editors such as VS Code render them, but GitHub does not. Fonts are dropped (no Markdown equivalent). The document title is the file name, not an added H1, because templates already start with their own heading.
+- **Found while verifying:** the round trip (import a `.md`, export it) showed that importing already lost `~~strikethrough~~` and code-block languages. The sanitizer now maps `<del>`/`<strike>` to `<s>` and keeps only `language-*` classes on `<code>`.
+
+### 20. Accepted dependency advisories
 `npm audit` reports moderate advisories in `drizzle-kit`'s bundled esbuild (dev server issue). `drizzle-kit` is a dev-only CLI for generating migrations; it is not part of the running app. Accepted.
 Excalidraw 0.18.1 pins older versions of `mermaid`/`langium`/`lodash-es` (used only by its optional "Mermaid to Excalidraw" dialog) and `nanoid`. They run in the browser on the user's own input, and the only offered fix is downgrading Excalidraw. Accepted until an upstream release; non-breaking fixes were applied with `npm audit fix`.

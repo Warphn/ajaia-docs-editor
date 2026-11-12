@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { EditorContent, useEditor, type Editor } from '@tiptap/react';
-import { ArrowLeft, FileDown, Share2 } from 'lucide-react';
+import { ArrowLeft, Share2 } from 'lucide-react';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { ApiError } from '../api/client';
@@ -8,11 +8,13 @@ import type { DocumentDetail } from '../api/types';
 import { AccessBadge } from '../components/AccessBadge';
 import { AppHeader } from '../components/AppHeader';
 import { Button } from '../components/Button';
+import { ExportMenu } from '../components/ExportMenu';
 import { FullPageMessage } from '../components/FullPageMessage';
 import { SaveStatusIndicator } from '../components/SaveStatusIndicator';
 import { ShareDialog } from '../components/ShareDialog';
 import { createEditorExtensions } from '../editor/editor-extensions';
 import { EditorToolbar } from '../editor/EditorToolbar';
+import { downloadMarkdown } from '../editor/export-markdown';
 import { useDocumentAutosave } from '../hooks/use-document-autosave';
 import type { DropPoint } from '../canvas/CanvasWorkspace';
 import { DRAWING_DRAG_TYPE } from '../canvas/IncludeDrawingChip';
@@ -165,6 +167,13 @@ function DocumentWorkspace({ document, onReloadRequested }: DocumentWorkspacePro
     printDocument(title.trim() || lastSavedTitleRef.current);
   }
 
+  // Exports what is on screen, including edits the autosave has not sent yet.
+  function exportMarkdown() {
+    if (editor) {
+      downloadMarkdown(title.trim() || lastSavedTitleRef.current, editor.getHTML());
+    }
+  }
+
   const viewOnlyNotice = !canEdit && (
     <p className="print-hidden mb-3 rounded-md bg-sheet px-3 py-2 text-sm text-ink-muted shadow-sm">
       You have view-only access. Ask {document.owner.name} for edit access.
@@ -217,11 +226,8 @@ function DocumentWorkspace({ document, onReloadRequested }: DocumentWorkspacePro
         />
         {canEdit && <SaveStatusIndicator status={autosave.status} />}
         {document.access !== 'owner' && <AccessBadge access={document.access} />}
-        {!isCanvasLayout && (
-          <Button variant="ghost" onClick={printPage} aria-label="Export PDF" title="Print or save as PDF">
-            <FileDown size={16} aria-hidden="true" />
-          </Button>
-        )}
+        {/* The canvas layout has its own export buttons in the page controls. */}
+        {!isCanvasLayout && <ExportMenu onExportPdf={printPage} onExportMarkdown={exportMarkdown} />}
         <Button variant={document.access === 'owner' ? 'primary' : 'secondary'} onClick={() => setIsShareDialogOpen(true)}>
           <Share2 size={16} aria-hidden="true" />
           <span className="hidden sm:inline">Share</span>
@@ -266,6 +272,7 @@ function DocumentWorkspace({ document, onReloadRequested }: DocumentWorkspacePro
               }
               onRemoveDrawing={(drawingId) => editorRef.current && removeDrawingImages(editorRef.current, drawingId)}
               onPrint={printPage}
+              onExportMarkdown={exportMarkdown}
             />
           </Suspense>
         ) : (

@@ -58,6 +58,7 @@ export interface CanvasWorkspaceProps {
   /** Lets the editor pan the canvas so the text cursor stays visible while typing. */
   revealScreenRectRef: React.RefObject<((rect: { top: number; bottom: number }) => void) | null>;
   onPrint: () => void;
+  onExportMarkdown: () => void;
 }
 
 /**
@@ -70,7 +71,7 @@ export interface CanvasWorkspaceProps {
  */
 export function CanvasWorkspace(props: CanvasWorkspaceProps) {
   const { documentId, canEdit, initialScene, page, includedDrawingIds, onIncludeDrawing, onRemoveDrawing } = props;
-  const { includeSelectionRef, revealScreenRectRef, onPrint } = props;
+  const { includeSelectionRef, revealScreenRectRef, onPrint, onExportMarkdown } = props;
   const workspaceRef = useRef<HTMLDivElement>(null);
   const pageRef = useRef<HTMLDivElement>(null);
   const excalidrawAPIRef = useRef<ExcalidrawImperativeAPI | null>(null);
@@ -455,6 +456,7 @@ export function CanvasWorkspace(props: CanvasWorkspaceProps) {
         onToggleLock={toggleLock}
         onResetPosition={resetPagePosition}
         onPrint={onPrint}
+        onExportMarkdown={onExportMarkdown}
       />
       {canEdit && isDrawing && selection.size > 0 && (
         <IncludeDrawingChip

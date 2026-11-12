@@ -22,6 +22,7 @@ To try sharing, sign in as two people in different browsers (or one normal + one
 - **Rich text:** headings (H1–H3), bold, italic, underline, strikethrough, bulleted and numbered lists, quotes, code blocks, undo/redo, keyboard shortcuts.
 - **Canvas around the page:** the dotted background is a whiteboard (Excalidraw). Click **Draw** to show the drawing tools (Esc, **Done drawing** or clicking the page returns to writing). Drag a drawing onto the page — or click **Include in document** — to embed it; select it again and the same button becomes **Remove from document**. The page can be dragged around the canvas, locked in place, or reset. Drawings are saved with the document and visible to everyone with access (read-only for viewers). Screens narrower than 768 px use the classic layout.
 - **A4 pages, exported as edited:** the sheet is A4 with 25 mm margins and shows dashed page-break guides while you type. **Export PDF** prints exactly that layout (same line and page breaks), without the canvas and without the browser's header/footer.
+- **Export to Markdown:** download the document as `<title>.md` (GitHub-flavored): headings, formatting, lists, quotes, code blocks with their language, and Mermaid diagrams as ` ```mermaid ` fences, so the file can be imported back.
 - **Fonts:** default IBM Plex Sans plus Arial, Times New Roman, Georgia, Roboto and Courier New.
 - **Diagrams as code:** insert a Mermaid diagram (flowchart, sequence, ER…) and edit it with a live preview. ` ```mermaid ` blocks in imported Markdown become diagrams.
 - **Autosave** with a visible status, `Ctrl/Cmd+S`, and protection against overwriting someone else's newer save.
@@ -74,7 +75,7 @@ Configuration: see [`apps/api/.env.example`](apps/api/.env.example) (`DATABASE_U
 npm test
 ```
 
-Runs 112 tests: API unit and integration tests (on an in-memory Postgres) and web unit tests. Details: [docs/testing.md](docs/testing.md).
+Runs 127 tests: API unit and integration tests (on an in-memory Postgres) and web unit tests. Details: [docs/testing.md](docs/testing.md).
 
 ## API Documentation (Swagger)
 
@@ -99,12 +100,12 @@ Free-tier limits: the web service sleeps after ~15 minutes idle (the first reque
 Deliberately out of scope for the 4–6 hour timebox:
 
 - **Real-time co-editing and presence** (Yjs/CRDT + WebSockets). Concurrent saves are detected (HTTP 409) and the user is asked to reload instead of merging.
-- Comments, suggestions, version history, export to Markdown.
+- Comments, suggestions, version history.
 - Real-time merging of canvas edits (the canvas is last-write-wins).
 - Sign-up, password reset, organizations. Teams have no roles or member removal yet, and existing documents cannot be moved into a team.
 - File attachments and uploading arbitrary images (images come from canvas drawings and .docx imports).
 
-**Next, with 2–4 more hours:** real-time collaboration on the existing editor (Yjs + Hocuspocus, which TipTap supports), version history using the existing `version` column (snapshot per save), export to Markdown, and editable included drawings (keep the Excalidraw scene inside the image node).
+**Next, with 2–4 more hours:** real-time collaboration on the existing editor (Yjs + Hocuspocus, which TipTap supports), version history using the existing `version` column (snapshot per save), and editable included drawings (keep the Excalidraw scene inside the image node).
 
 ## Documentation
 

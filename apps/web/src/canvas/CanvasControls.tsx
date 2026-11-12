@@ -1,4 +1,4 @@
-import { AlertTriangle, Check, Crosshair, FileDown, Lock, LockOpen, PenLine } from 'lucide-react';
+import { AlertTriangle, Check, Crosshair, FileCode, FileDown, Lock, LockOpen, PenLine } from 'lucide-react';
 import type { CanvasSaveStatus } from './use-canvas-autosave';
 
 interface CanvasControlsProps {
@@ -12,12 +12,13 @@ interface CanvasControlsProps {
   onToggleLock: () => void;
   onResetPosition: () => void;
   onPrint: () => void;
+  onExportMarkdown: () => void;
 }
 
 /** Floating page controls, bottom-right (Excalidraw keeps its zoom/undo controls bottom-left). */
 export function CanvasControls(props: CanvasControlsProps) {
   const { isLocked, canEdit, isDrawing, canvasSaveStatus, rightOffset } = props;
-  const { onToggleDrawing, onToggleLock, onResetPosition, onPrint } = props;
+  const { onToggleDrawing, onToggleLock, onResetPosition, onPrint, onExportMarkdown } = props;
   const buttonClasses =
     'inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-sm text-ink-muted transition-colors hover:bg-canvas hover:text-ink';
   const edgeGap = 16;
@@ -62,6 +63,10 @@ export function CanvasControls(props: CanvasControlsProps) {
       <button type="button" onClick={onPrint} className={buttonClasses} title="Print or save as PDF (A4, page only)">
         <FileDown size={15} aria-hidden="true" />
         Export PDF
+      </button>
+      <button type="button" onClick={onExportMarkdown} className={buttonClasses} title="Download as Markdown (.md)">
+        <FileCode size={15} aria-hidden="true" />
+        Markdown
       </button>
     </div>
   );

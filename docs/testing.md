@@ -14,7 +14,7 @@ Test where the risk is: access control, data integrity and the save loop. UI ren
 | Layer | File | What it proves |
 |---|---|---|
 | Unit | [`access-control.test.ts`](../apps/api/src/lib/access-control.test.ts) | Owner/editor/viewer/no-access resolution, team members get edit access (stronger than a view-only share), each permission check |
-| Unit | [`sanitize-html.test.ts`](../apps/api/src/lib/sanitize-html.test.ts) | Supported formatting survives; scripts, event handlers and `javascript:` links are removed; embedded `data:image/*` images kept, remote/HTML/script image sources removed; only font-family styles kept; drawing ids kept |
+| Unit | [`sanitize-html.test.ts`](../apps/api/src/lib/sanitize-html.test.ts) | Supported formatting survives; `<del>` becomes `<s>`; only `language-*` classes kept on `<code>`; scripts, event handlers and `javascript:` links are removed; embedded `data:image/*` images kept, remote/HTML/script image sources removed; only font-family styles kept; drawing ids kept |
 | Unit | [`file-to-html.test.ts`](../apps/api/src/modules/imports/file-to-html.test.ts) | .txt/.md/.docx conversion (a real .docx is built in memory), ` ```mermaid ` fences become diagram blocks, 415/400 errors |
 | Integration | [`documents-and-sharing.test.ts`](../apps/api/test/documents-and-sharing.test.ts) | Full flow through HTTP + SQL: login, create, save, reopen, 409 on stale version, share as viewer (read OK, edit 403), upgrade to editor, non-owner cannot share/delete, unrelated user gets 404, revoke, delete |
 | Integration | [`import.test.ts`](../apps/api/test/import.test.ts) | Multipart upload creates an owned document; sanitization of imported HTML; 413, 415, 401 |
@@ -26,6 +26,8 @@ Test where the risk is: access control, data integrity and the save loop. UI ren
 | Unit (web) | [`canvas-helpers.test.ts`](../apps/web/src/canvas/canvas-helpers.test.ts) | Page placement/drag math matches Excalidraw's, reset centering, selection export includes bound text and groups, drawing id shared by a selection, restoring dragged elements, save fingerprint ignores non-persistent changes |
 | Unit (web) | [`library-storage.test.ts`](../apps/web/src/canvas/library-storage.test.ts) | Shape library round-trips through browser storage; empty, corrupted or unavailable storage loads as an empty library; a failed save throws so Excalidraw can report it |
 | Unit (web) | [`library-return.test.ts`](../apps/web/src/canvas/library-return.test.ts) | Each tab gets a unique window name (the library site's return target); an existing name is kept |
+| Unit (web) | [`export-markdown.test.ts`](../apps/web/src/editor/export-markdown.test.ts) | Headings, inline formatting, strikethrough, underline as `<u>`, tight and nested lists, Mermaid blocks as ` ```mermaid ` fences, code-block language, links/quotes/rules/images, font wrappers dropped; safe file names with a fallback |
+| Component (web) | [`ExportMenu.test.tsx`](../apps/web/src/components/ExportMenu.test.tsx) | Runs the chosen export and closes; Esc closes without exporting |
 | Component (web) | [`ConfirmDialog.test.tsx`](../apps/web/src/components/ConfirmDialog.test.tsx) | Confirm runs the action, Cancel does not, buttons disabled with a pending label while the action runs, failure message shown |
 | Unit (web) | [`use-document-autosave.test.ts`](../apps/web/src/hooks/use-document-autosave.test.ts) | Debounce batching, version chaining, stop on 409, retry after network error |
 
