@@ -65,13 +65,12 @@ Raw OpenAPI JSON: `/api/docs/json`. To call protected endpoints from Swagger UI,
 
 ## Deployment
 
-Single Render web service (API + static web app) defined in [`render.yaml`](render.yaml), with a free Neon Postgres database:
+Everything is defined in [`render.yaml`](render.yaml): one free Render web service (API + static web app) and one free Render Postgres database, wired together automatically.
 
-1. Create a free Postgres database on [Neon](https://neon.tech) and copy its connection string.
-2. On [Render](https://render.com): **New → Blueprint**, select this repository, paste the connection string into `DATABASE_URL`.
-3. Render builds (`npm ci --include=dev && npm run build`), runs migrations and the seed on startup, and checks `/api/health`.
+1. On [Render](https://render.com): **New → Blueprint**, select this repository, **Deploy Blueprint**. No values to fill in.
+2. Render creates the database, generates `JWT_SECRET`, builds (`npm ci --include=dev && npm run build`), runs migrations and the seed on startup, and checks `/api/health`.
 
-The free tier sleeps after ~15 minutes idle; the first request afterwards can take ~50 s.
+Free-tier limits: the web service sleeps after ~15 minutes idle (the first request afterwards can take ~50 s), and the free database expires 30 days after creation. To use another Postgres (e.g. Neon, Supabase), set `DATABASE_URL` instead.
 
 ## What is not included
 

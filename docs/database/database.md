@@ -10,7 +10,7 @@ PostgreSQL, accessed through [Drizzle ORM](https://orm.drizzle.team). Schema sou
 
 | Environment | Engine | Why |
 |---|---|---|
-| Production (Render) | Neon Postgres (free tier), via `DATABASE_URL` | Managed, persistent, no cost for reviewers |
+| Production | Render Postgres (free tier), wired to `DATABASE_URL` by the blueprint | Managed, created with the app in one step, no cost for reviewers |
 | Local development | [PGlite](https://pglite.dev) (Postgres compiled to WASM, in-process), stored in `apps/api/.data/pglite` | `npm install && npm run dev` works with no Docker or database setup |
 | Automated tests | PGlite in memory (fresh DB per suite), or a real server via `TEST_DATABASE_URL` | Tests run real SQL with constraints and cascades, not mocks |
 

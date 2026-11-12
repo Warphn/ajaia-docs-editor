@@ -25,7 +25,7 @@ flowchart LR
     Static["Static SPA hosting<br/>(index.html fallback)"]
     Swagger["Swagger UI<br/>/api/docs"]
   end
-  DB[("Postgres<br/>Neon")]
+  DB[("Postgres<br/>Render free tier")]
 
   SPA -- "fetch /api (httpOnly session cookie)" --> Fastify
   SPA -. "GET /, /documents/*" .-> Static

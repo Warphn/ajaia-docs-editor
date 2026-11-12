@@ -18,7 +18,7 @@ Each entry: decision, alternatives considered, tradeoff, reason.
 - **Tradeoff:** Less familiar to some reviewers than Express.
 - **Reason:** One Zod schema per route gives request validation, TypeScript types and the OpenAPI document, so Swagger cannot drift from behavior. NestJS is heavier than this scope needs.
 
-### 4. Postgres everywhere: Neon in production, embedded PGlite locally and in tests
+### 4. Postgres everywhere: managed Postgres in production, embedded PGlite locally and in tests
 - **Alternatives:** SQLite (simple, but file storage is wiped on Render's free tier); Postgres in Docker for local development; mocked repositories in tests.
 - **Tradeoff:** Two drivers (postgres-js and PGlite) behind one Drizzle interface.
 - **Reason:** Reviewers run the project with zero setup; tests exercise real SQL (constraints, cascades, `ON CONFLICT`) instead of mocks; production gets a durable managed database at no cost. Driver parity is checked by running the integration suite against Postgres 17 too ([testing](./testing.md#against-a-real-postgres)).
@@ -48,10 +48,10 @@ Each entry: decision, alternatives considered, tradeoff, reason.
 - **Tradeoff:** Images and table layout from .docx are dropped.
 - **Reason:** Teams already have drafts in Word/Markdown; turning them into editable, shareable documents is the most useful product behavior, and it reuses the same content pipeline (convert → sanitize → store). Attachments would need object storage, which free hosting lacks.
 
-### 10. Render (free) + Neon (free)
-- **Alternatives:** Vercel (serverless functions + separate DB), Fly.io/Railway (no longer free), Render's own Postgres (expires after 30 days).
-- **Tradeoff:** Cold start of ~50 s after idling.
-- **Reason:** Zero cost for reviewers, a long-running Node process (simple, works with the static hosting), a blueprint (`render.yaml`) checked into the repo, and a database that doesn't expire during the review window.
+### 10. Render free web service + Render free Postgres, both in one blueprint
+- **Alternatives:** Vercel (serverless functions + separate DB); Fly.io/Railway (no longer free); Neon as an external database (first choice in the plan, but its sign-up now routes through a Vercel integration, which adds another account and manual wiring).
+- **Tradeoff:** Cold start of ~50 s after idling; the free database expires 30 days after creation.
+- **Reason:** Zero cost, one account, and one click: `render.yaml` creates the database and the service and wires `DATABASE_URL` itself, so the deploy is fully reproducible from the repo. 30 days covers the review window, and the app accepts any Postgres through `DATABASE_URL` if it needs to outlive it.
 
 ### 11. Small UI choices
 - Native `<dialog>` for modals: focus trapping and Esc come from the browser, no library needed.
