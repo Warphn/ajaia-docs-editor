@@ -33,8 +33,9 @@ The same migrations run on both engines at startup (`connectDatabase` in [`clien
 | `id` | uuid | PK |
 | `owner_id` | uuid | FK → `users.id`, `ON DELETE CASCADE` |
 | `title` | text | 1–200 chars (validated by the API) |
-| `content_html` | text | Sanitized HTML (see [decisions](../decisions.md#5-store-content-as-sanitized-html)) |
+| `content_html` | text | Sanitized HTML; may embed images as `data:image/*` URIs (see [decisions](../decisions.md#5-store-content-as-sanitized-html)) |
 | `version` | integer | Incremented on every write; used for optimistic concurrency |
+| `canvas_scene` | jsonb, nullable | Whiteboard around the page: Excalidraw elements, pasted images, page position. Saved separately (last write wins) and excluded from document queries because it can be large |
 | `created_at`, `updated_at` | timestamptz | |
 
 Index: `documents_owner_id_idx (owner_id)` — "My documents" list.

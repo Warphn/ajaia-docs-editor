@@ -1,6 +1,6 @@
 import { and, desc, eq, sql } from 'drizzle-orm';
 import type { Database } from '../../db/client.js';
-import { documents, documentShares, users, type DocumentRecord } from '../../db/schema.js';
+import { documentColumns, documents, documentShares, users, type DocumentRecord } from '../../db/schema.js';
 import { canDelete, canEdit, type DocumentAccess } from '../../lib/access-control.js';
 import { badRequest, conflict, forbidden } from '../../lib/errors.js';
 import { sanitizeDocumentHtml } from '../../lib/sanitize-html.js';
@@ -26,14 +26,14 @@ const ownerColumns = { id: users.id, email: users.email, name: users.name };
 export function createDocumentsService(db: Database) {
   async function listForUser(userId: string): Promise<DocumentList> {
     const ownedRows = await db
-      .select({ document: documents, owner: ownerColumns })
+      .select({ document: documentColumns, owner: ownerColumns })
       .from(documents)
       .innerJoin(users, eq(users.id, documents.ownerId))
       .where(eq(documents.ownerId, userId))
       .orderBy(desc(documents.updatedAt));
 
     const sharedRows = await db
-      .select({ document: documents, owner: ownerColumns, role: documentShares.role })
+      .select({ document: documentColumns, owner: ownerColumns, role: documentShares.role })
       .from(documentShares)
       .innerJoin(documents, eq(documents.id, documentShares.documentId))
       .innerJoin(users, eq(users.id, documents.ownerId))
@@ -59,7 +59,7 @@ export function createDocumentsService(db: Database) {
         title: input.title?.trim() || template?.defaultTitle || DEFAULT_DOCUMENT_TITLE,
         contentHtml: sanitizeDocumentHtml(input.contentHtml ?? template?.contentHtml ?? ''),
       })
-      .returning();
+      .returning({ id: documents.id });
     return getDocument(userId, created!.id);
   }
 
@@ -88,7 +88,7 @@ export function createDocumentsService(db: Database) {
       })
       // Optimistic concurrency: the write only lands if nobody saved since the client's version.
       .where(and(eq(documents.id, documentId), eq(documents.version, input.version)))
-      .returning();
+      .returning(documentColumns);
 
     if (!updated) {
       throw conflict('This document was changed by someone else. Reload to get the latest version.');

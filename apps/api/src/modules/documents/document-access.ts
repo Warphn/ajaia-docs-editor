@@ -1,6 +1,6 @@
 import { and, eq } from 'drizzle-orm';
 import type { Database } from '../../db/client.js';
-import { documents, documentShares, users, type DocumentRecord } from '../../db/schema.js';
+import { documentColumns, documents, documentShares, users, type DocumentRecord } from '../../db/schema.js';
 import { resolveAccess, type DocumentAccess } from '../../lib/access-control.js';
 import { notFound } from '../../lib/errors.js';
 import type { PublicUser } from '../users/user.schemas.js';
@@ -24,7 +24,7 @@ export async function loadAccessibleDocument(
 ): Promise<AccessibleDocument> {
   const [row] = await db
     .select({
-      document: documents,
+      document: documentColumns,
       owner: { id: users.id, email: users.email, name: users.name },
       shareRole: documentShares.role,
     })

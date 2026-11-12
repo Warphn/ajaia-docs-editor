@@ -7,6 +7,7 @@ import {
   documentDetailSchema,
   documentIdParamsSchema,
   documentListSchema,
+  MAX_DOCUMENT_BODY_BYTES,
   updateDocumentBodySchema,
 } from './document.schemas.js';
 import type { DocumentsService } from './documents.service.js';
@@ -75,6 +76,7 @@ export const documentsRoutes: FastifyPluginAsyncZod<DocumentsRoutesOptions> = as
   app.patch(
     '/api/documents/:documentId',
     {
+      bodyLimit: MAX_DOCUMENT_BODY_BYTES,
       schema: {
         tags: ['documents'],
         summary: 'Rename and/or save document content',

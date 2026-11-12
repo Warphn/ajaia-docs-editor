@@ -2,8 +2,10 @@ import { z } from 'zod';
 import { publicUserSchema } from '../users/user.schemas.js';
 
 export const MAX_TITLE_LENGTH = 200;
-// Generous ceiling for HTML content; protects the API from accidental multi-megabyte payloads.
-export const MAX_CONTENT_LENGTH = 1_000_000;
+// Drawings and imported images are embedded as data URIs, so content can reach a few megabytes.
+export const MAX_CONTENT_LENGTH = 8_000_000;
+/** Request size cap for document saves (content plus JSON overhead). */
+export const MAX_DOCUMENT_BODY_BYTES = 10 * 1024 * 1024;
 export const DEFAULT_DOCUMENT_TITLE = 'Untitled document';
 
 export const documentAccessSchema = z

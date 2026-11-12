@@ -14,6 +14,8 @@ import type { Database } from './db/client.js';
 import { authenticationPlugin, SESSION_COOKIE_NAME } from './lib/authentication.js';
 import { AppError, type ErrorResponse } from './lib/errors.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
+import { canvasRoutes } from './modules/canvas/canvas.routes.js';
+import { createCanvasService } from './modules/canvas/canvas.service.js';
 import { createAuthService } from './modules/auth/auth.service.js';
 import { documentsRoutes } from './modules/documents/documents.routes.js';
 import { createDocumentsService } from './modules/documents/documents.service.js';
@@ -54,6 +56,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
         { name: 'documents', description: 'Create, open, edit, rename and delete documents' },
         { name: 'sharing', description: 'Grant, change and revoke access to a document' },
         { name: 'templates', description: 'Starting points for common tech-team documents' },
+        { name: 'canvas', description: 'Whiteboard around the document page (drawings, page position)' },
         { name: 'health', description: 'Service status' },
       ],
       components: {
@@ -76,6 +79,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
   await app.register(importsRoutes, { documentsService });
   await app.register(sharesRoutes, { sharesService });
   await app.register(templatesRoutes);
+  await app.register(canvasRoutes, { canvasService: createCanvasService(options.db) });
 
   app.withTypeProvider<ZodTypeProvider>().get(
     '/api/health',

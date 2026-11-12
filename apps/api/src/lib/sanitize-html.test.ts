@@ -34,6 +34,24 @@ describe('sanitizeDocumentHtml', () => {
     expect(sanitizeDocumentHtml(html)).toBe('<div data-type="mermaid" data-source="graph TD; A--&gt;B">x</div>');
   });
 
+  it('keeps embedded SVG and PNG images (canvas drawings, .docx pictures)', () => {
+    const svgImage = '<p><img src="data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=" alt="Drawing" /></p>';
+    const pngImage = '<p><img src="data:image/png;base64,iVBORw0KGgo=" /></p>';
+
+    expect(sanitizeDocumentHtml(svgImage)).toBe(svgImage);
+    expect(sanitizeDocumentHtml(pngImage)).toBe(pngImage);
+  });
+
+  it('removes images with remote, HTML or script sources', () => {
+    const html =
+      '<p>a<img src="https://tracker.example/pixel.png" />' +
+      '<img src="data:text/html;base64,PHNjcmlwdD4=" />' +
+      '<img src="javascript:alert(1)" />' +
+      '<img onerror="alert(1)" />b</p>';
+
+    expect(sanitizeDocumentHtml(html)).toBe('<p>ab</p>');
+  });
+
   it('preserves multi-line diagram source with quotes intact', () => {
     const html = '<div data-type="mermaid" data-source="erDiagram\n  DOC ||--o{ SHARE : &quot;shared via&quot;"></div>';
 
