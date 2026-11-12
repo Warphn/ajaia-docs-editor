@@ -12,6 +12,7 @@ import type { CanvasScene } from '../api/types';
 import { CanvasControls } from './CanvasControls';
 import { exportElementsAsImage } from './export-drawing';
 import { IncludeDrawingChip } from './IncludeDrawingChip';
+import { nameWindowForLibraryReturns } from './library-return';
 import { createLibraryStorageAdapter } from './library-storage';
 import {
   gridBackgroundStyle,
@@ -91,6 +92,17 @@ export function CanvasWorkspace(props: CanvasWorkspaceProps) {
 
   // Installs libraries returned by libraries.excalidraw.com and persists the library in this browser.
   useHandleLibrary({ excalidrawAPI, adapter: libraryStorageAdapter });
+  useEffect(() => nameWindowForLibraryReturns(), []);
+
+  // The page controls sit bottom-right; while Excalidraw's sidebar (library) is open they move left of
+  // it, so they never cover its footer ("Browse libraries").
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(0);
+  useLayoutEffect(() => {
+    const sidebar = isSidebarOpen ? workspaceRef.current?.querySelector<HTMLElement>('.excalidraw .sidebar') : null;
+    // offsetWidth is 0 in writing mode, where the sidebar is hidden with the rest of Excalidraw's UI.
+    setSidebarWidth(sidebar?.offsetWidth ?? 0);
+  }, [isSidebarOpen, isDrawing]);
 
   const canvasAutosave = useCanvasAutosave(
     documentId,
@@ -375,6 +387,7 @@ export function CanvasWorkspace(props: CanvasWorkspaceProps) {
           setIsDropTargetActive((wasActive) => (wasActive === shouldHighlight ? wasActive : shouldHighlight));
         }}
         onChange={(elements, appState) => {
+          setIsSidebarOpen(appState.openSidebar !== null);
           const selectedElements = collectElementsForExport(elements, appState.selectedElementIds);
           const nextSelection = { size: selectedElements.length, drawingId: sharedDrawingId(selectedElements) };
           setSelection((previous) =>
@@ -437,6 +450,7 @@ export function CanvasWorkspace(props: CanvasWorkspaceProps) {
         canEdit={canEdit}
         isDrawing={isDrawing}
         canvasSaveStatus={canvasAutosave.status}
+        rightOffset={sidebarWidth}
         onToggleDrawing={() => setIsDrawing((wasDrawing) => !wasDrawing)}
         onToggleLock={toggleLock}
         onResetPosition={resetPagePosition}
