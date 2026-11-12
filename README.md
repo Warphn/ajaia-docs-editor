@@ -4,7 +4,7 @@ A lightweight collaborative document editor for product and engineering teams, i
 
 > Built for the Ajaia AI-Native Full Stack assessment ([brief](docs/assignment-brief.md)).
 
-**Live app:** _deployment in progress — URL will be added here_
+**Live app:** https://ajaia-docs-hz3d.onrender.com (free tier: the first visit after idling can take ~50 s while the server wakes up)
 **Demo accounts** (password `demo1234` for all, or use the one-click buttons on the login page):
 
 | Account | Starts with |
@@ -59,7 +59,7 @@ Runs 46 tests: API unit and integration tests (on an in-memory Postgres) and web
 The backend API is documented with **Swagger / OpenAPI**. With the app running, open:
 
 - **Local:** http://localhost:3000/api/docs
-- **Live:** `<live app URL>/api/docs`
+- **Live:** https://ajaia-docs-hz3d.onrender.com/api/docs
 
 Raw OpenAPI JSON: `/api/docs/json`. To call protected endpoints from Swagger UI, first execute `POST /api/auth/login` (e.g. `alice@ajaia.dev` / `demo1234`); the browser keeps the session cookie.
 

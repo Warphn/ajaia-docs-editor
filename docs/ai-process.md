@@ -58,6 +58,7 @@ The plan ([architecture](./architecture.md)) split the work into commit-sized st
 | Sanitizer draft with an `exclusiveFilter` and a misleading comment | Removed | Did nothing; comment described behavior the code didn't have |
 | Unit test expecting `titleFromFileName('.md')` to fall back | Test failed: Node treats `.md` as a dotfile with no extension. Replaced with a realistic case | Such a file is already rejected (415) earlier; the test was asserting an impossible path |
 | Header layout | Browser screenshot at 390 px showed the title input squeezed to 0 px. Fixed with a compact header (logo-only, icon sign-out) | Found by verification, not by reading code |
+| Neon as the production database (AI plan) | Replaced by a Render Postgres declared in `render.yaml` when the human hit a Vercel-only sign-up flow at deploy time | Fewer accounts and zero manual wiring outweigh the 30-day expiry of the free database |
 | Initial bundle of 732 kB (230 kB gzip) | Editor route lazy-loaded → 316 kB (100 kB gzip) initial | Login and list don't need ProseMirror |
 
 ## How correctness, UX and reliability were verified
@@ -66,6 +67,7 @@ The plan ([architecture](./architecture.md)) split the work into commit-sized st
 - **Database parity:** the same integration suite passed on PGlite and on Postgres 17 (Docker), covering both production and local drivers.
 - **Types and build:** strict TypeScript (`noUncheckedIndexedAccess`) and production builds of both apps on every step.
 - **Real browser:** a scripted Chrome walkthrough as two users (owner shares → recipient sees it under "Shared with me", read-only), reload to confirm formatting persists, mobile viewport check, and no unexpected console errors.
+- **Production:** after deploy, the browser walkthrough was re-run against the live URL (two users, share as viewer, reload, read-only check), cleaning up its own test document.
 - **Swagger:** checked that every route appears at `/api/docs` with request and error schemas.
 
 ## Assumptions made due to ambiguity

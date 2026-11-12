@@ -37,3 +37,5 @@ All suites pass on Postgres 17 as well.
 ## Manual verification
 
 A headless-Chrome walkthrough (Playwright driving the built app) covered: one-click demo login, creating a document, formatting via keyboard shortcuts, autosave reaching "Saved", sharing as viewer, reload preserving `<strong>` and lists, the recipient seeing it under "Shared with me" and getting a read-only editor, and mobile layout at 390 px. It caught a real bug: on mobile the header squeezed the title field to zero width (fixed by a compact header).
+
+The same flow was re-run against the live deployment (owner creates and formats a document, shares it as view-only, reload preserves formatting, recipient gets a read-only editor), then the test document was deleted.
