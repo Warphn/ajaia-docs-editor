@@ -28,6 +28,7 @@ Test where the risk is: access control, data integrity and the save loop. UI ren
 | Unit (web) | [`library-return.test.ts`](../apps/web/src/canvas/library-return.test.ts) | Each tab gets a unique window name (the library site's return target); an existing name is kept |
 | Unit (web) | [`export-markdown.test.ts`](../apps/web/src/editor/export-markdown.test.ts) | Headings, inline formatting, strikethrough, underline as `<u>`, tight and nested lists, Mermaid blocks as ` ```mermaid ` fences, code-block language, links/quotes/rules/images, font wrappers dropped; safe file names with a fallback |
 | Component (web) | [`ExportMenu.test.tsx`](../apps/web/src/components/ExportMenu.test.tsx) | Runs the chosen export and closes; Esc closes without exporting |
+| Unit (web) | [`theme.test.ts`](../apps/web/src/theme/theme.test.ts) | A stored choice beats the system setting; no choice follows the system; invalid or unavailable storage falls back; applying a theme sets `data-theme` and `color-scheme` even when it cannot be stored |
 | Component (web) | [`ConfirmDialog.test.tsx`](../apps/web/src/components/ConfirmDialog.test.tsx) | Confirm runs the action, Cancel does not, buttons disabled with a pending label while the action runs, failure message shown |
 | Unit (web) | [`use-document-autosave.test.ts`](../apps/web/src/hooks/use-document-autosave.test.ts) | Debounce batching, version chaining, stop on 409, retry after network error |
 

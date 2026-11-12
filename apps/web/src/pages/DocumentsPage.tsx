@@ -263,7 +263,7 @@ function WorkspaceButton(props: {
       aria-current={isActive ? 'page' : undefined}
       className={
         'inline-flex h-8 max-w-56 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors ' +
-        (isActive ? 'bg-primary text-white' : 'border border-line bg-sheet text-ink-muted hover:text-ink')
+        (isActive ? 'bg-primary text-on-accent' : 'border border-line bg-sheet text-ink-muted hover:text-ink')
       }
     >
       <Icon size={14} aria-hidden={true} />

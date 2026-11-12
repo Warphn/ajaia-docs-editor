@@ -12,6 +12,19 @@
       rel="stylesheet"
     />
     <title>Ajaia Docs</title>
+    <script>
+      // Applied before the first paint so a dark theme never flashes light. Same rule as src/theme/theme.ts.
+      (function () {
+        var storedTheme = null;
+        try {
+          storedTheme = localStorage.getItem('ajaia-theme');
+        } catch (error) {}
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : prefersDark ? 'dark' : 'light';
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

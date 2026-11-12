@@ -34,6 +34,7 @@ import {
 } from './scene-helpers';
 import { useCanvasAutosave } from './use-canvas-autosave';
 import { usePageLock } from './use-page-lock';
+import { useTheme } from '../theme/theme';
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 4;
@@ -88,6 +89,7 @@ export function CanvasWorkspace(props: CanvasWorkspaceProps) {
   const [selection, setSelection] = useState<{ size: number; drawingId: string | null }>({ size: 0, drawingId: null });
   const [isDropTargetActive, setIsDropTargetActive] = useState(false);
   const { isLocked, toggleLock } = usePageLock(documentId);
+  const { theme } = useTheme();
   const viewportRef = useRef(viewport);
   viewportRef.current = viewport;
 
@@ -374,6 +376,9 @@ export function CanvasWorkspace(props: CanvasWorkspaceProps) {
           appState: { viewBackgroundColor: 'transparent', currentItemFontFamily: 1 },
         }}
         viewModeEnabled={!canEdit || !isDrawing}
+        // Controlled by the app's theme toggle (Excalidraw then hides its own toggle). Drawings included
+        // in the document are still exported in light colors (see export-drawing.ts).
+        theme={theme}
         onScrollChange={(scrollX, scrollY, zoom) => setViewport({ scrollX, scrollY, zoom: zoom.value })}
         onPointerUpdate={({ pointer, button }) => {
           const appState = excalidrawAPIRef.current?.getAppState();

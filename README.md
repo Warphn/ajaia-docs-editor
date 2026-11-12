@@ -23,6 +23,7 @@ To try sharing, sign in as two people in different browsers (or one normal + one
 - **Canvas around the page:** the dotted background is a whiteboard (Excalidraw). Click **Draw** to show the drawing tools (Esc, **Done drawing** or clicking the page returns to writing). Drag a drawing onto the page — or click **Include in document** — to embed it; select it again and the same button becomes **Remove from document**. The page can be dragged around the canvas, locked in place, or reset. Drawings are saved with the document and visible to everyone with access (read-only for viewers). Screens narrower than 768 px use the classic layout.
 - **A4 pages, exported as edited:** the sheet is A4 with 25 mm margins and shows dashed page-break guides while you type. **Export PDF** prints exactly that layout (same line and page breaks), without the canvas and without the browser's header/footer.
 - **Export to Markdown:** download the document as `<title>.md` (GitHub-flavored): headings, formatting, lists, quotes, code blocks with their language, and Mermaid diagrams as ` ```mermaid ` fences, so the file can be imported back.
+- **Dark mode:** follows the system setting until you pick a theme with the sun/moon button in the header; the choice is remembered. Printing and PDF export always use the light page.
 - **Fonts:** default IBM Plex Sans plus Arial, Times New Roman, Georgia, Roboto and Courier New.
 - **Diagrams as code:** insert a Mermaid diagram (flowchart, sequence, ER…) and edit it with a live preview. ` ```mermaid ` blocks in imported Markdown become diagrams.
 - **Autosave** with a visible status, `Ctrl/Cmd+S`, and protection against overwriting someone else's newer save.
@@ -75,7 +76,7 @@ Configuration: see [`apps/api/.env.example`](apps/api/.env.example) (`DATABASE_U
 npm test
 ```
 
-Runs 127 tests: API unit and integration tests (on an in-memory Postgres) and web unit tests. Details: [docs/testing.md](docs/testing.md).
+Runs 133 tests: API unit and integration tests (on an in-memory Postgres) and web unit tests. Details: [docs/testing.md](docs/testing.md).
 
 ## API Documentation (Swagger)
 

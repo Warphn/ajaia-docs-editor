@@ -42,7 +42,7 @@ export function CanvasControls(props: CanvasControlsProps) {
           title={isDrawing ? 'Back to writing (Esc)' : 'Show drawing tools to sketch on the canvas'}
           className={
             isDrawing
-              ? 'inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-2.5 text-sm font-medium text-white hover:bg-primary-hover'
+              ? 'inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-2.5 text-sm font-medium text-on-accent hover:bg-primary-hover'
               : buttonClasses
           }
         >

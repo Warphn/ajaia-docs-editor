@@ -37,11 +37,11 @@ export function IncludeDrawingChip({ isIncluded, onInclude, onRemove }: IncludeD
             event.dataTransfer.effectAllowed = 'copy';
           }}
           onClick={onInclude}
-          className="flex cursor-grab items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-white shadow-lg hover:bg-primary-hover active:cursor-grabbing"
+          className="flex cursor-grab items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-on-accent shadow-lg hover:bg-primary-hover active:cursor-grabbing"
         >
           <GripVertical size={16} aria-hidden="true" />
           Include in document
-          <span className="text-xs font-normal text-white/75">click, or drag the drawing onto the page</span>
+          <span className="text-xs font-normal text-on-accent/75">click, or drag the drawing onto the page</span>
         </button>
       )}
     </div>

@@ -43,7 +43,7 @@ export function Dialog({ isOpen, onClose, title, description, size = 'default', 
       // Clicking the backdrop (the dialog element itself, outside the panel) closes it.
       onClick={(event) => event.target === dialogRef.current && onClose()}
       className={
-        'm-auto w-[calc(100%-2rem)] rounded-lg border border-line bg-sheet p-0 text-ink shadow-xl backdrop:bg-ink/30 ' +
+        'm-auto w-[calc(100%-2rem)] rounded-lg border border-line bg-sheet p-0 text-ink shadow-xl backdrop:bg-black/40 ' +
         (size === 'wide' ? 'max-w-5xl' : 'max-w-lg')
       }
     >

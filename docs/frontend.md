@@ -47,7 +47,15 @@ The API decides access; the UI only reflects `document.access`:
 
 ## Design
 
-Engineering-paper look: the document is a white sheet on a dotted canvas; everything else is quiet. IBM Plex Sans (UI and content) and IBM Plex Mono (code). Color tokens are defined once in [`styles.css`](../apps/web/src/styles.css) (`@theme`). Lists of documents are table-like rows rather than card grids, so titles, owners and dates scan quickly.
+Engineering-paper look: the document is a white sheet on a dotted canvas; everything else is quiet. IBM Plex Sans (UI and content) and IBM Plex Mono (code). Color tokens are defined once in [`styles.css`](../apps/web/src/styles.css) (`@theme`), and components use only tokens, so the dark theme is the same tokens with other values. Lists of documents are table-like rows rather than card grids, so titles, owners and dates scan quickly.
+
+**Dark mode** ([`theme.ts`](../apps/web/src/theme/theme.ts)): `data-theme="dark"` on `<html>` switches the tokens. Without a stored choice the system setting applies (and is followed live); the header button stores `light`/`dark` in `localStorage`. An inline script in [`index.html`](../apps/web/index.html) applies the theme before the first paint, so there is no light flash. Details:
+- Dark values only apply on `screen`, so print/PDF always uses the light page.
+- `on-accent` is the text color on filled buttons (white in light, near-black in dark, where the primary blue must be light enough to read as link text); code blocks have their own tokens.
+- Figures stay light (Mermaid diagrams and included drawings get a white background), like a pasted picture: no re-rendering, and they print as shown.
+- Excalidraw receives `theme` (its native dark mode); drawings included in the document are still exported in light colors.
+- In the editor on small screens the toggle is hidden from the header (the title needs the room); it stays on the documents list.
+- Palette checked against WCAG AA: body text ≥ 13:1, muted ≥ 7:1, faint text and links ≥ 4.5:1.
 
 Accessibility basics: semantic landmarks, labelled controls and icon buttons, `role="status"` for save state, `role="alert"` for errors, visible focus ring, native `<dialog>` (focus trap + Esc), reduced-motion respected, responsive down to 360 px.
 

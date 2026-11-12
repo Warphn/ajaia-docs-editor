@@ -1,7 +1,8 @@
-import { LogOut } from 'lucide-react';
+import { LogOut, Moon, Sun } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useCurrentUser, useLogout } from '../auth/use-current-user';
+import { useTheme } from '../theme/theme';
 import { Avatar } from './Avatar';
 import { Button } from './Button';
 import { Wordmark } from './Wordmark';
@@ -11,6 +12,8 @@ export function AppHeader({ children }: { children?: ReactNode }) {
   const navigate = useNavigate();
   const { data: currentUser } = useCurrentUser();
   const logout = useLogout();
+  const { theme, toggleTheme } = useTheme();
+  const nextThemeLabel = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
 
   function signOut() {
     logout.mutate(undefined, { onSuccess: () => navigate('/login', { replace: true }) });
@@ -28,6 +31,12 @@ export function AppHeader({ children }: { children?: ReactNode }) {
             <span className="hidden items-center gap-2 text-sm sm:flex" title={currentUser.email}>
               <Avatar name={currentUser.name} size="sm" />
               {currentUser.name}
+            </span>
+            {/* With a title in the header (editor), small screens need the room: the toggle stays on the list. */}
+            <span className={children ? 'hidden sm:block' : undefined}>
+              <Button variant="ghost" onClick={toggleTheme} aria-label={nextThemeLabel} title={nextThemeLabel} className="px-2">
+                {theme === 'dark' ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}
+              </Button>
             </span>
             <Button variant="ghost" onClick={signOut} disabled={logout.isPending} aria-label="Sign out" className="px-2 sm:px-3.5">
               <LogOut size={16} aria-hidden="true" className="sm:hidden" />

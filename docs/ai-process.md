@@ -73,11 +73,13 @@ The plan ([architecture](./architecture.md)) split the work into commit-sized st
 | Choosing a stretch goal for a 20-minute slot | The AI checked the optional list against the code first: PDF export and role-based sharing already existed; version history and comments need schema + UI (too big); presence indicators were borderline. Recommended Markdown export (browser-only, no schema change); the human approved | Picks the item that completes a feature (export) with the least risk |
 | Markdown export, first browser check | Round trip (import a `.md`, export it) passed for diagrams but showed that **import** already lost `~~strikethrough~~` and code-block languages; fixed in the sanitizer with tests. The 390 px screenshot showed the new header icon squeezing the title field again (the bug fixed earlier), so PDF and Markdown moved behind one **Export** menu on mobile | Both found only by the end-to-end check, not by the unit tests |
 | `npm install -w` crashed inside npm (arborist `reading 'location'`) | Declared the dependency in `package.json` and ran a root `npm install`; confirmed a single React 19 copy afterwards | Known npm workspace bug; avoids touching the lockfile by hand |
+| Bug report: "the mouse cursor turns white for a few seconds when a document opens" (no screenshot possible) | Measured instead of guessed: a headless-Chrome probe sampled the computed `cursor` on a grid every 50 ms while opening and creating documents on the live site, and a `longtask` observer measured main-thread blocking. Only `auto`, `default` and Excalidraw's `grab` appeared, with 0 ms of long tasks, so no freeze or broken cursor style was found. The likely explanation is the white open hand Windows shows for `grab` over the canvas (Excalidraw view mode allows panning by dragging); reported to the product owner instead of changing the cursor blindly | A UI symptom that cannot be shown can still be turned into measurements |
+| Dark mode | Done as a token swap because components already used tokens only. Contrast computed for every text/background pair before writing CSS. The headless check caught the mobile editor title squeezed again by the new header button (toggle now hidden there on small screens); the anti-flash script was verified with the app's JavaScript blocked | Same class of header bug as before, caught by the same 390 px screenshot |
 | Initial bundle of 732 kB (230 kB gzip) | Editor route lazy-loaded → 316 kB (100 kB gzip) initial | Login and list don't need ProseMirror |
 
 ## How correctness, UX and reliability were verified
 
-- **Automated:** 127 tests (`npm test`): access rules, sanitizer, importers, full sharing flow over HTTP + SQL, import endpoint limits, autosave behavior. See [testing](./testing.md).
+- **Automated:** 133 tests (`npm test`): access rules, sanitizer, importers, full sharing flow over HTTP + SQL, import endpoint limits, autosave behavior. See [testing](./testing.md).
 - **Database parity:** the same integration suite passed on PGlite and on Postgres 17 (Docker), covering both production and local drivers.
 - **Types and build:** strict TypeScript (`noUncheckedIndexedAccess`) and production builds of both apps on every step.
 - **Real browser:** a scripted Chrome walkthrough as two users (owner shares → recipient sees it under "Shared with me", read-only), reload to confirm formatting persists, mobile viewport check, and no unexpected console errors.
@@ -112,6 +114,7 @@ The plan ([architecture](./architecture.md)) split the work into commit-sized st
 | — | Third iteration from product-owner feedback: drawing mode, drag drawing to page, include/remove toggle, A4 WYSIWYG export with page guides, fonts (asked: page size → A4; drawing mode → explicit button) |
 | — | Fourth iteration: Excalidraw library fixes, then team workspaces in the remaining ~70 min (asked: member access → edit; who adds members → any member; scope → documents created in the team) |
 | — | Stretch goals: the AI mapped the optional list against what already shipped (PDF export, viewer/editor roles), estimated the rest for a 20-minute slot and recommended Markdown export; the browser delete prompt became an in-app dialog |
+| — | Cursor report investigated with measurements; dark mode (token swap, light figures and print) |
 
 ## Out of scope, and what's next with 2–4 more hours
 

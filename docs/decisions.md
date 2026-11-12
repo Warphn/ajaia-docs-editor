@@ -109,6 +109,13 @@ Each entry: decision, alternatives considered, tradeoff, reason.
 - **Tradeoffs:** included drawings and .docx pictures stay as `data:image` URIs: nothing is lost and editors such as VS Code render them, but GitHub does not. Fonts are dropped (no Markdown equivalent). The document title is the file name, not an added H1, because templates already start with their own heading.
 - **Found while verifying:** the round trip (import a `.md`, export it) showed that importing already lost `~~strikethrough~~` and code-block languages. The sanitizer now maps `<del>`/`<strike>` to `<s>` and keeps only `language-*` classes on `<code>`.
 
-### 20. Accepted dependency advisories
+### 20. Dark mode by token swap, light figures and light print
+- **Context:** product-owner request.
+- **Decision:** a second set of values for the existing color tokens under `:root[data-theme="dark"]`, limited to `@media screen`; system setting by default, header toggle remembered in `localStorage`, applied by an inline script before the first paint. Diagrams and included drawings keep a white background.
+- **Alternatives:** Tailwind `dark:` variants on every component (hundreds of class changes, easy to miss one); rendering Mermaid with its dark theme (re-render on every toggle, and the PDF would then need a light re-render); a three-way light/dark/system control (more UI for little gain: clearing the choice is rarely needed).
+- **Tradeoffs:** figures are bright rectangles on the dark page; the user cannot go back to "follow the system" without clearing site data.
+- **Reason:** components already used tokens only, so the change is one CSS block, a small hook and a button, and it cannot leak into printed output.
+
+### 21. Accepted dependency advisories
 `npm audit` reports moderate advisories in `drizzle-kit`'s bundled esbuild (dev server issue). `drizzle-kit` is a dev-only CLI for generating migrations; it is not part of the running app. Accepted.
 Excalidraw 0.18.1 pins older versions of `mermaid`/`langium`/`lodash-es` (used only by its optional "Mermaid to Excalidraw" dialog) and `nanoid`. They run in the browser on the user's own input, and the only offered fix is downgrading Excalidraw. Accepted until an upstream release; non-breaking fixes were applied with `npm audit fix`.
