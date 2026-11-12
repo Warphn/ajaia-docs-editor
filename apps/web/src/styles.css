@@ -181,13 +181,51 @@
   background: transparent;
 }
 
+/* Writing mode: drawings stay visible, but Excalidraw's toolbars and panels are hidden until "Draw". */
+.canvas-workspace[data-drawing="false"] .excalidraw .layer-ui__wrapper {
+  display: none;
+}
+
+/* On-screen A4 sheet: same width and margins as the printed page (see editor/page-format.ts). */
+.document-sheet {
+  position: relative;
+  box-sizing: border-box;
+  width: 210mm;
+  padding: 25mm;
+}
+
+.document-sheet .ProseMirror {
+  min-height: 247mm;
+}
+
+.page-break-guide {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--color-line-strong);
+  pointer-events: none;
+}
+
+.page-break-guide span {
+  position: absolute;
+  right: 8px;
+  top: -9px;
+  padding: 0 6px;
+  background: var(--color-sheet);
+  color: var(--color-ink-faint);
+  font-size: 11px;
+  line-height: 18px;
+}
+
 /*
- * Printing / "Save as PDF" outputs the page only: no app chrome, no canvas, no drawings around it,
- * and the page is laid out normally (the canvas transform is removed).
+ * Printing / "Save as PDF" outputs the page exactly as edited: A4, 25 mm margins, no app chrome,
+ * no canvas. The page margin is 0 so browsers drop their own header/footer (date, URL, page count),
+ * and the sheet's padding is repeated on every printed page (box-decoration-break: clone).
  */
 @media print {
   @page {
-    margin: 16mm;
+    size: A4;
+    margin: 0;
   }
 
   html,
@@ -220,11 +258,21 @@
   }
 
   .print-page {
+    box-sizing: border-box !important;
+    width: 210mm !important;
     max-width: none !important;
+    min-height: 0 !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 25mm !important;
     border: none !important;
+    border-radius: 0 !important;
     box-shadow: none !important;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  .print-page .ProseMirror {
+    min-height: 0 !important;
   }
 
   .document-content img,

@@ -14,7 +14,11 @@ import { ShareDialog } from '../components/ShareDialog';
 import { createEditorExtensions } from '../editor/editor-extensions';
 import { EditorToolbar } from '../editor/EditorToolbar';
 import { useDocumentAutosave } from '../hooks/use-document-autosave';
+import type { DropPoint } from '../canvas/CanvasWorkspace';
 import { DRAWING_DRAG_TYPE } from '../canvas/IncludeDrawingChip';
+import { collectDrawingIds, insertDrawingImage, removeDrawingImages } from '../editor/drawing-images';
+import { PAGE_CONTENT_HEIGHT_MM, PAGE_FORMAT_MM } from '../editor/page-format';
+import { PageBreakGuides, usePageCount } from '../editor/PageBreakGuides';
 import { documentKeys, useCanvas, useDocument } from '../hooks/use-documents';
 import { useMediaQuery } from '../hooks/use-media-query';
 
@@ -77,8 +81,12 @@ function DocumentWorkspace({ document, onReloadRequested }: DocumentWorkspacePro
   const lastSavedTitleRef = useRef(document.title);
   const isCanvasLayout = useMediaQuery(CANVAS_MEDIA_QUERY);
   const canvasQuery = useCanvas(document.id, { enabled: isCanvasLayout });
-  const exportSelectionRef = useRef<(() => Promise<string | null>) | null>(null);
+  const includeSelectionRef = useRef<((dropPoint?: DropPoint) => Promise<void>) | null>(null);
+  const revealScreenRectRef = useRef<((rect: { top: number; bottom: number }) => void) | null>(null);
   const editorRef = useRef<Editor | null>(null);
+  const [includedDrawingIds, setIncludedDrawingIds] = useState<ReadonlySet<string>>(
+    () => new Set(drawingIdsInHtml(document.contentHtml)),
+  );
 
   const autosave = useDocumentAutosave({
     documentId: document.id,
@@ -99,22 +107,32 @@ function DocumentWorkspace({ document, onReloadRequested }: DocumentWorkspacePro
         class: 'document-content min-h-[60vh]',
         'aria-label': 'Document content',
       },
+      // On the canvas, keep the cursor visible by panning the canvas instead of scrolling elements.
+      handleScrollToSelection: (view) => {
+        if (!revealScreenRectRef.current) {
+          return false;
+        }
+        revealScreenRectRef.current(view.coordsAtPos(view.state.selection.head));
+        return true;
+      },
       // Dropping the "Include in document" chip inserts the canvas selection where it lands.
-      handleDrop: (view, event) => {
+      handleDrop: (_view, event) => {
         if (!event.dataTransfer?.types.includes(DRAWING_DRAG_TYPE)) {
           return false;
         }
         event.preventDefault();
-        const dropPosition = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos;
-        void exportSelectionRef.current?.().then((imageSource) => {
-          if (imageSource) {
-            insertDrawing(editorRef.current, imageSource, dropPosition);
-          }
-        });
+        void includeSelectionRef.current?.({ clientX: event.clientX, clientY: event.clientY });
         return true;
       },
     },
-    onUpdate: ({ editor: updatedEditor }) => autosave.queueChange({ contentHtml: updatedEditor.getHTML() }),
+    onUpdate: ({ editor: updatedEditor }) => {
+      autosave.queueChange({ contentHtml: updatedEditor.getHTML() });
+      // Keep the canvas' "Include / Remove" toggle in sync, also when an image is deleted by hand.
+      const currentDrawingIds = collectDrawingIds(updatedEditor.state.doc);
+      setIncludedDrawingIds((previousIds) =>
+        sameIds(previousIds, currentDrawingIds) ? previousIds : new Set(currentDrawingIds),
+      );
+    },
   });
   editorRef.current = editor;
 
@@ -141,28 +159,41 @@ function DocumentWorkspace({ document, onReloadRequested }: DocumentWorkspacePro
     }
   }
 
+  const pageCount = usePageCount(isCanvasLayout ? editor : null);
+
   function printPage() {
     printDocument(title.trim() || lastSavedTitleRef.current);
   }
 
-  const pageSheet = (
-    <article
-      className={
-        'print-page rounded-sm border border-line bg-sheet px-6 py-10 shadow-[0_1px_3px_rgba(27,34,48,0.08)] sm:px-16 sm:py-14 ' +
-        (isCanvasLayout ? 'w-full' : 'mx-auto max-w-204')
-      }
-    >
-      {!canEdit && (
-        <p className="print-hidden mb-6 rounded-md bg-canvas px-3 py-2 text-sm text-ink-muted">
-          You have view-only access. Ask {document.owner.name} for edit access.
-        </p>
-      )}
-      <EditorContent editor={editor} />
-    </article>
+  const viewOnlyNotice = !canEdit && (
+    <p className="print-hidden mb-3 rounded-md bg-sheet px-3 py-2 text-sm text-ink-muted shadow-sm">
+      You have view-only access. Ask {document.owner.name} for edit access.
+    </p>
+  );
+
+  // Canvas layout: an exact A4 sheet with page-break guides. Small screens: a fluid sheet.
+  const pageSheet = isCanvasLayout ? (
+    <>
+      {viewOnlyNotice}
+      <article
+        className="print-page document-sheet rounded-sm border border-line bg-sheet shadow-[0_1px_3px_rgba(27,34,48,0.08)]"
+        style={{ minHeight: `${2 * PAGE_FORMAT_MM.margin + pageCount * PAGE_CONTENT_HEIGHT_MM}mm` }}
+      >
+        <EditorContent editor={editor} />
+        <PageBreakGuides pageCount={pageCount} />
+      </article>
+    </>
+  ) : (
+    <div className="mx-auto max-w-204">
+      {viewOnlyNotice}
+      <article className="print-page rounded-sm border border-line bg-sheet px-6 py-10 shadow-[0_1px_3px_rgba(27,34,48,0.08)] sm:px-16 sm:py-14">
+        <EditorContent editor={editor} />
+      </article>
+    </div>
   );
 
   return (
-    <div className={'print-root canvas-grid flex flex-col ' + (isCanvasLayout ? 'h-screen overflow-hidden' : 'min-h-screen')}>
+    <div className={'print-root canvas-grid flex flex-col ' + (isCanvasLayout ? 'h-screen overflow-clip' : 'min-h-screen')}>
       <AppHeader>
         <Link
           to="/documents"
@@ -227,8 +258,13 @@ function DocumentWorkspace({ document, onReloadRequested }: DocumentWorkspacePro
               canEdit={canEdit}
               initialScene={canvasQuery.data.scene}
               page={pageSheet}
-              exportSelectionRef={exportSelectionRef}
-              onIncludeDrawing={(imageSource) => insertDrawing(editor, imageSource)}
+              includedDrawingIds={includedDrawingIds}
+              includeSelectionRef={includeSelectionRef}
+              revealScreenRectRef={revealScreenRectRef}
+              onIncludeDrawing={(source, drawingId, dropPoint) =>
+                editorRef.current && insertDrawingImage(editorRef.current, { source, drawingId }, dropPoint)
+              }
+              onRemoveDrawing={(drawingId) => editorRef.current && removeDrawingImages(editorRef.current, drawingId)}
               onPrint={printPage}
             />
           </Suspense>
@@ -252,17 +288,13 @@ function CanvasLoadingMessage({ error }: { error?: string | undefined }) {
   );
 }
 
-/** Inserts an exported drawing as an image block, at a drop position or at the cursor. */
-function insertDrawing(editor: Editor | null, imageSource: string, position?: number) {
-  if (!editor) {
-    return;
-  }
-  const image = { type: 'image', attrs: { src: imageSource, alt: 'Drawing' } };
-  if (position === undefined) {
-    editor.chain().focus().insertContent(image).run();
-  } else {
-    editor.chain().focus().insertContentAt(position, image).run();
-  }
+function sameIds(previousIds: ReadonlySet<string>, currentIds: readonly string[]) {
+  return previousIds.size === new Set(currentIds).size && currentIds.every((drawingId) => previousIds.has(drawingId));
+}
+
+/** Drawing ids in saved HTML, before the editor exists (data-drawing-id attributes). */
+function drawingIdsInHtml(html: string): string[] {
+  return [...html.matchAll(/data-drawing-id="([^"]+)"/g)].map((match) => match[1]!);
 }
 
 /** Uses the document title as the PDF file name, then restores the tab title. */

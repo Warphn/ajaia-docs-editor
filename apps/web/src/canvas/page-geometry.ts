@@ -1,3 +1,5 @@
+import { PAGE_WIDTH_PX } from '../editor/page-format';
+
 export interface Point {
   x: number;
   y: number;
@@ -12,7 +14,8 @@ export interface CanvasViewport {
 
 /** Where the page sits on a fresh canvas, and where "Reset position" puts it back. */
 export const PAGE_ORIGIN: Point = { x: 0, y: 0 };
-export const PAGE_WIDTH = 816;
+/** Width of the A4 sheet on the canvas, in canvas units (CSS pixels at zoom 1). */
+export const PAGE_WIDTH = PAGE_WIDTH_PX;
 /** Space kept above the page so the canvas toolbar never covers it after a reset. */
 const RESET_TOP_MARGIN = 88;
 

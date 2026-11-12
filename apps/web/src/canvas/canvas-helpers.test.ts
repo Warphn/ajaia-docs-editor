@@ -6,7 +6,13 @@ import {
   pageScreenTransform,
   viewportCenteredOnPage,
 } from './page-geometry';
-import { collectElementsForExport, sceneFingerprint, type SceneElement } from './scene-helpers';
+import {
+  collectElementsForExport,
+  restoreDraggedElements,
+  sceneFingerprint,
+  sharedDrawingId,
+  type SceneElement,
+} from './scene-helpers';
 
 describe('page geometry', () => {
   it('places the page like Excalidraw places elements: (position + scroll) × zoom', () => {
@@ -62,6 +68,40 @@ describe('collectElementsForExport', () => {
 
   it('never exports deleted elements', () => {
     expect(collectElementsForExport(elements, { deleted: true })).toEqual([]);
+  });
+});
+
+describe('sharedDrawingId', () => {
+  const tagged = (id: string, drawingId?: string): SceneElement => ({
+    id,
+    version: 1,
+    customData: drawingId ? { includedDrawingId: drawingId } : undefined,
+  });
+
+  it('returns the id when every selected element belongs to the same included drawing', () => {
+    expect(sharedDrawingId([tagged('a', 'drawing-1'), tagged('b', 'drawing-1')])).toBe('drawing-1');
+  });
+
+  it('returns null for mixed or never-included selections', () => {
+    expect(sharedDrawingId([tagged('a', 'drawing-1'), tagged('b', 'drawing-2')])).toBeNull();
+    expect(sharedDrawingId([tagged('a', 'drawing-1'), tagged('b')])).toBeNull();
+    expect(sharedDrawingId([tagged('a')])).toBeNull();
+    expect(sharedDrawingId([])).toBeNull();
+  });
+});
+
+describe('restoreDraggedElements', () => {
+  it('restores elements changed during the drag and bumps their version', () => {
+    const atPointerDown = new Map([['box', { id: 'box', version: 3, x: 10, y: 20 }]]);
+    const afterDrag = [
+      { id: 'box', version: 5, x: 400, y: 300 },
+      { id: 'untouched', version: 1, x: 0, y: 0 },
+    ];
+
+    expect(restoreDraggedElements(afterDrag, atPointerDown)).toEqual([
+      { id: 'box', version: 6, x: 10, y: 20 },
+      { id: 'untouched', version: 1, x: 0, y: 0 },
+    ]);
   });
 });
 

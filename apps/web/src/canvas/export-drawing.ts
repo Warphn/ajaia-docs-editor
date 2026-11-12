@@ -1,25 +1,23 @@
 import { exportToSvg } from '@excalidraw/excalidraw';
-import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
-import { collectElementsForExport } from './scene-helpers';
+import type { NonDeletedExcalidrawElement } from '@excalidraw/excalidraw/element/types';
+import type { AppState, BinaryFiles } from '@excalidraw/excalidraw/types';
 
 /** Space around the drawing inside the exported image. */
 const EXPORT_PADDING = 16;
 
 /**
- * Exports the current canvas selection as an SVG data URI, ready to embed in the document.
+ * Exports canvas elements as an SVG data URI, ready to embed in the document.
  * Fonts are inlined so text renders identically inside <img> and in printed PDFs.
  */
-export async function exportSelectionAsImage(excalidrawAPI: ExcalidrawImperativeAPI): Promise<string | null> {
-  const appState = excalidrawAPI.getAppState();
-  const elements = collectElementsForExport(excalidrawAPI.getSceneElements(), appState.selectedElementIds);
-  if (elements.length === 0) {
-    return null;
-  }
-
+export async function exportElementsAsImage(
+  elements: readonly NonDeletedExcalidrawElement[],
+  appState: AppState,
+  files: BinaryFiles,
+): Promise<string> {
   const svg = await exportToSvg({
     elements,
     appState: { ...appState, exportBackground: true, viewBackgroundColor: '#ffffff', exportWithDarkMode: false },
-    files: excalidrawAPI.getFiles(),
+    files,
     exportPadding: EXPORT_PADDING,
   });
   return svgToDataUrl(new XMLSerializer().serializeToString(svg));

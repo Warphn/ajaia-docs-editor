@@ -5,6 +5,38 @@ export interface SceneElement {
   isDeleted?: boolean;
   containerId?: string | null;
   groupIds?: readonly string[];
+  customData?: Record<string, unknown> | undefined;
+}
+
+/** Key stored in an element's customData linking it to the image it was included as. */
+export const INCLUDED_DRAWING_KEY = 'includedDrawingId';
+
+/** The drawing id shared by every element of a selection, or null if they were never included together. */
+export function sharedDrawingId(elements: readonly SceneElement[]): string | null {
+  if (elements.length === 0) {
+    return null;
+  }
+  const drawingIds = new Set(elements.map((element) => element.customData?.[INCLUDED_DRAWING_KEY]));
+  const [onlyDrawingId] = drawingIds;
+  return drawingIds.size === 1 && typeof onlyDrawingId === 'string' ? onlyDrawingId : null;
+}
+
+/**
+ * Puts elements changed during a drag back to their state at pointer-down (dropping a drawing on the
+ * page copies it into the document; the original stays where it was). Versions keep increasing so
+ * Excalidraw re-renders and autosave notices the change.
+ */
+export function restoreDraggedElements<Element extends SceneElement>(
+  currentElements: readonly Element[],
+  elementsAtPointerDown: ReadonlyMap<string, Element>,
+): Element[] {
+  return currentElements.map((element) => {
+    const original = elementsAtPointerDown.get(element.id);
+    if (!original || original.version === element.version) {
+      return element;
+    }
+    return { ...original, version: element.version + 1 };
+  });
 }
 
 /**

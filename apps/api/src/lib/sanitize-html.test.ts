@@ -52,6 +52,28 @@ describe('sanitizeDocumentHtml', () => {
     expect(sanitizeDocumentHtml(html)).toBe('<p>ab</p>');
   });
 
+  it('keeps the font family chosen in the editor and nothing else in styles', () => {
+    expect(sanitizeDocumentHtml('<p><span style="font-family: Arial, Helvetica, sans-serif">a</span></p>')).toBe(
+      '<p><span style="font-family:Arial, Helvetica, sans-serif">a</span></p>',
+    );
+    expect(sanitizeDocumentHtml(`<p><span style="font-family: 'Times New Roman', serif; color: red">b</span></p>`)).toBe(
+      `<p><span style="font-family:'Times New Roman', serif">b</span></p>`,
+    );
+  });
+
+  it('drops styles that could load resources or inject CSS', () => {
+    const html = '<p><span style="font-family: x; background: url(https://evil.example/a.png)">c</span></p>';
+
+    expect(sanitizeDocumentHtml(html)).toBe('<p><span style="font-family:x">c</span></p>');
+    expect(sanitizeDocumentHtml('<p><span style="font-family: url(x)">d</span></p>')).toBe('<p><span>d</span></p>');
+  });
+
+  it('keeps the canvas link on included drawings', () => {
+    const html = '<p><img src="data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=" data-drawing-id="d-1" /></p>';
+
+    expect(sanitizeDocumentHtml(html)).toBe(html);
+  });
+
   it('preserves multi-line diagram source with quotes intact', () => {
     const html = '<div data-type="mermaid" data-source="erDiagram\n  DOC ||--o{ SHARE : &quot;shared via&quot;"></div>';
 

@@ -14,6 +14,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { findFontOption, FONT_OPTIONS } from './font-options';
 
 type BlockStyle = 'paragraph' | 'heading1' | 'heading2' | 'heading3';
 
@@ -30,6 +31,7 @@ export function EditorToolbar({ editor, children }: { editor: Editor; children?:
     editor,
     selector: ({ editor: currentEditor }) => ({
       blockStyle: currentBlockStyle(currentEditor),
+      fontFamily: findFontOption(currentEditor.getAttributes('textStyle').fontFamily as string | undefined).value,
       isBold: currentEditor.isActive('bold'),
       isItalic: currentEditor.isActive('italic'),
       isUnderline: currentEditor.isActive('underline'),
@@ -50,6 +52,14 @@ export function EditorToolbar({ editor, children }: { editor: Editor; children?:
     } else {
       const level = Number(blockStyle.replace('heading', '')) as 1 | 2 | 3;
       chain.setHeading({ level }).run();
+    }
+  }
+
+  function applyFontFamily(fontFamily: string) {
+    if (fontFamily) {
+      editor.chain().focus().setFontFamily(fontFamily).run();
+    } else {
+      editor.chain().focus().unsetFontFamily().run();
     }
   }
 
@@ -74,6 +84,22 @@ export function EditorToolbar({ editor, children }: { editor: Editor; children?:
         {Object.entries(BLOCK_STYLE_LABELS).map(([value, label]) => (
           <option key={value} value={value}>
             {label}
+          </option>
+        ))}
+      </select>
+      <label className="sr-only" htmlFor="font-family">
+        Font
+      </label>
+      <select
+        id="font-family"
+        value={state.fontFamily}
+        onChange={(event) => applyFontFamily(event.target.value)}
+        className="h-8 w-36 rounded-md border border-transparent bg-transparent px-2 text-sm hover:border-line focus:border-primary"
+        style={{ fontFamily: state.fontFamily || undefined }}
+      >
+        {FONT_OPTIONS.map((option) => (
+          <option key={option.label} value={option.value} style={{ fontFamily: option.value || undefined }}>
+            {option.label}
           </option>
         ))}
       </select>

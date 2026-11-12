@@ -18,12 +18,21 @@ const SANITIZE_OPTIONS: sanitize.IOptions = {
     'ul', 'ol', 'li', 'a', 'img',
     // Block wrapper used by the Mermaid diagram node.
     'div',
+    // Inline wrapper carrying the font family chosen in the editor.
+    'span',
   ],
   allowedAttributes: {
     a: ['href', 'target', 'rel'],
     div: ['data-type', 'data-source'],
-    img: ['src', 'alt', 'title'],
+    // data-drawing-id links an included drawing to its source on the canvas (include/remove toggle).
+    img: ['src', 'alt', 'title', 'data-drawing-id'],
     ol: ['start'],
+    span: ['style'],
+  },
+  // Only font names are allowed in styles: letters, digits, spaces, commas, quotes and hyphens
+  // (no url(), no semicolons), so a style attribute cannot load resources or inject other CSS.
+  allowedStyles: {
+    span: { 'font-family': [/^[\w\s,'"-]+$/] },
   },
   allowedSchemes: ['http', 'https', 'mailto'],
   allowedSchemesByTag: { img: ['data'] },

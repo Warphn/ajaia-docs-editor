@@ -1,10 +1,10 @@
-import { Excalidraw } from '@excalidraw/excalidraw';
+import { CaptureUpdateAction, Excalidraw, newElementWith } from '@excalidraw/excalidraw';
 import '@excalidraw/excalidraw/index.css';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import type { CanvasScene } from '../api/types';
 import { CanvasControls } from './CanvasControls';
-import { exportSelectionAsImage } from './export-drawing';
+import { exportElementsAsImage } from './export-drawing';
 import { IncludeDrawingChip } from './IncludeDrawingChip';
 import {
   gridBackgroundStyle,
@@ -16,12 +16,22 @@ import {
   type CanvasViewport,
   type Point,
 } from './page-geometry';
-import { sceneFingerprint, type SceneElement } from './scene-helpers';
+import {
+  collectElementsForExport,
+  INCLUDED_DRAWING_KEY,
+  restoreDraggedElements,
+  sceneFingerprint,
+  sharedDrawingId,
+  type SceneElement,
+} from './scene-helpers';
 import { useCanvasAutosave } from './use-canvas-autosave';
 import { usePageLock } from './use-page-lock';
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 4;
+
+/** Where an included drawing should land: the editor cursor, or a point on screen (drag and drop). */
+export type DropPoint = { clientX: number; clientY: number };
 
 export interface CanvasWorkspaceProps {
   documentId: string;
@@ -29,10 +39,15 @@ export interface CanvasWorkspaceProps {
   initialScene: CanvasScene | null;
   /** The document sheet (editor), rendered on the canvas at the page position. */
   page: ReactNode;
-  /** Inserts an exported drawing at the editor cursor. */
-  onIncludeDrawing: (imageSource: string) => void;
-  /** Lets the editor export the selection when the "include" chip is dropped on the page. */
-  exportSelectionRef: React.RefObject<(() => Promise<string | null>) | null>;
+  /** Ids of drawings currently present in the document, to offer "Remove" instead of "Include". */
+  includedDrawingIds: ReadonlySet<string>;
+  /** Inserts (or moves) a drawing image in the document. */
+  onIncludeDrawing: (imageSource: string, drawingId: string, dropPoint?: DropPoint) => void;
+  onRemoveDrawing: (drawingId: string) => void;
+  /** Lets the editor include the canvas selection when the "include" chip is dropped on the page. */
+  includeSelectionRef: React.RefObject<((dropPoint?: DropPoint) => Promise<void>) | null>;
+  /** Lets the editor pan the canvas so the text cursor stays visible while typing. */
+  revealScreenRectRef: React.RefObject<((rect: { top: number; bottom: number }) => void) | null>;
   onPrint: () => void;
 }
 
@@ -40,16 +55,27 @@ export interface CanvasWorkspaceProps {
  * Infinite whiteboard (Excalidraw) with the document page floating on it.
  * The page is a regular DOM element positioned with the canvas' scroll and zoom, so the rich-text
  * editor keeps working normally while drawings live around it.
+ *
+ * Two modes: writing (default: canvas UI hidden, drawings visible but not editable) and drawing
+ * (Excalidraw's toolbar and properties appear).
  */
 export function CanvasWorkspace(props: CanvasWorkspaceProps) {
-  const { documentId, canEdit, initialScene, page, onIncludeDrawing, exportSelectionRef, onPrint } = props;
+  const { documentId, canEdit, initialScene, page, includedDrawingIds, onIncludeDrawing, onRemoveDrawing } = props;
+  const { includeSelectionRef, revealScreenRectRef, onPrint } = props;
   const workspaceRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
   const excalidrawAPIRef = useRef<ExcalidrawImperativeAPI | null>(null);
   const pagePositionRef = useRef<Point>(initialScene?.pagePosition ?? PAGE_ORIGIN);
   const [pagePosition, setPagePosition] = useState<Point>(pagePositionRef.current);
   const [viewport, setViewport] = useState<CanvasViewport>({ scrollX: 0, scrollY: 0, zoom: 1 });
-  const [selectionSize, setSelectionSize] = useState(0);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const isDrawingRef = useRef(isDrawing);
+  isDrawingRef.current = isDrawing;
+  const [selection, setSelection] = useState<{ size: number; drawingId: string | null }>({ size: 0, drawingId: null });
+  const [isDropTargetActive, setIsDropTargetActive] = useState(false);
   const { isLocked, toggleLock } = usePageLock(documentId);
+  const viewportRef = useRef(viewport);
+  viewportRef.current = viewport;
 
   const canvasAutosave = useCanvasAutosave(
     documentId,
@@ -102,22 +128,114 @@ export function CanvasWorkspace(props: CanvasWorkspaceProps) {
     setPagePosition(position);
   }, []);
 
-  const exportSelection = useCallback(async () => {
-    const excalidrawAPI = excalidrawAPIRef.current;
-    return excalidrawAPI ? exportSelectionAsImage(excalidrawAPI) : null;
-  }, []);
+  /**
+   * Exports the canvas selection into the document. Elements are tagged with a drawing id (in
+   * Excalidraw's customData) so selecting them later offers "Remove from document".
+   */
+  const includeSelection = useCallback(
+    async (dropPoint?: DropPoint) => {
+      const excalidrawAPI = excalidrawAPIRef.current;
+      if (!excalidrawAPI) {
+        return;
+      }
+      const appState = excalidrawAPI.getAppState();
+      const elements = collectElementsForExport(excalidrawAPI.getSceneElements(), appState.selectedElementIds);
+      if (elements.length === 0) {
+        return;
+      }
+      const drawingId = sharedDrawingId(elements) ?? crypto.randomUUID();
+      const imageSource = await exportElementsAsImage(elements, appState, excalidrawAPI.getFiles());
+
+      const elementIds = new Set(elements.map((element) => element.id));
+      excalidrawAPI.updateScene({
+        elements: excalidrawAPI.getSceneElementsIncludingDeleted().map((element) =>
+          elementIds.has(element.id) && element.customData?.[INCLUDED_DRAWING_KEY] !== drawingId
+            ? newElementWith(element, { customData: { ...element.customData, [INCLUDED_DRAWING_KEY]: drawingId } })
+            : element,
+        ),
+        captureUpdate: CaptureUpdateAction.NEVER,
+      });
+      setSelection({ size: elements.length, drawingId });
+      onIncludeDrawing(imageSource, drawingId, dropPoint);
+    },
+    [onIncludeDrawing],
+  );
 
   useLayoutEffect(() => {
-    exportSelectionRef.current = exportSelection;
+    includeSelectionRef.current = includeSelection;
     return () => {
-      exportSelectionRef.current = null;
+      includeSelectionRef.current = null;
     };
-  }, [exportSelection, exportSelectionRef]);
+  }, [includeSelection, includeSelectionRef]);
+
+  /**
+   * Pans the canvas vertically just enough to show a screen rectangle (the text cursor).
+   * Replaces the browser's own scrolling, which would shift the whole workspace instead.
+   */
+  const revealScreenRect = useCallback(
+    (rect: { top: number; bottom: number }) => {
+      const workspaceBounds = workspaceRef.current?.getBoundingClientRect();
+      if (!workspaceBounds) {
+        return;
+      }
+      const comfortMargin = 96;
+      let overflow = 0;
+      if (rect.bottom > workspaceBounds.bottom - comfortMargin) {
+        overflow = rect.bottom - (workspaceBounds.bottom - comfortMargin);
+      } else if (rect.top < workspaceBounds.top + comfortMargin) {
+        overflow = rect.top - (workspaceBounds.top + comfortMargin);
+      }
+      if (overflow !== 0) {
+        const current = viewportRef.current;
+        applyViewport({ ...current, scrollY: current.scrollY - overflow / current.zoom });
+      }
+    },
+    [applyViewport],
+  );
+
+  useLayoutEffect(() => {
+    revealScreenRectRef.current = revealScreenRect;
+    return () => {
+      revealScreenRectRef.current = null;
+    };
+  }, [revealScreenRect, revealScreenRectRef]);
+
+  const isOverPage = useCallback((clientX: number, clientY: number) => {
+    const pageBounds = pageRef.current?.getBoundingClientRect();
+    return (
+      !!pageBounds &&
+      clientX >= pageBounds.left &&
+      clientX <= pageBounds.right &&
+      clientY >= pageBounds.top &&
+      clientY <= pageBounds.bottom
+    );
+  }, []);
+
+  /** Dragging selected drawings and releasing them over the page includes them at that spot. */
+  const handleCanvasPointerUp = useCallback(
+    (excalidrawAPI: ExcalidrawImperativeAPI) =>
+      excalidrawAPI.onPointerUp((activeTool, pointerDownState, event) => {
+        setIsDropTargetActive(false);
+        const draggedSelection =
+          activeTool.type === 'selection' && pointerDownState.drag.hasOccurred && pointerDownState.hit.element;
+        if (!isDrawingRef.current || !draggedSelection || !isOverPage(event.clientX, event.clientY)) {
+          return;
+        }
+        excalidrawAPI.updateScene({
+          elements: restoreDraggedElements(
+            excalidrawAPI.getSceneElementsIncludingDeleted(),
+            pointerDownState.originalElements,
+          ),
+          captureUpdate: CaptureUpdateAction.NEVER,
+        });
+        // Read through the ref: this listener is registered once, so it must not capture a stale callback.
+        void includeSelectionRef.current?.({ clientX: event.clientX, clientY: event.clientY });
+      }),
+    [includeSelectionRef, isOverPage],
+  );
 
   // Wheel over the page navigates the canvas, exactly like wheel over the drawings.
   const pageLayerRef = useRef<HTMLDivElement>(null);
-  const viewportRef = useRef(viewport);
-  viewportRef.current = viewport;
   useEffect(() => {
     const pageLayer = pageLayerRef.current;
     const workspace = workspaceRef.current;
@@ -151,6 +269,23 @@ export function CanvasWorkspace(props: CanvasWorkspaceProps) {
     pageLayer.addEventListener('wheel', navigateCanvas, { passive: false });
     return () => pageLayer.removeEventListener('wheel', navigateCanvas);
   }, [applyViewport]);
+
+  // Esc leaves drawing mode once nothing is selected (Excalidraw uses the first Esc to deselect).
+  useEffect(() => {
+    const workspace = workspaceRef.current;
+    if (!workspace || !isDrawing) {
+      return;
+    }
+    function leaveDrawingOnEscape(event: KeyboardEvent) {
+      const appState = excalidrawAPIRef.current?.getAppState();
+      const hasSelection = Object.values(appState?.selectedElementIds ?? {}).some(Boolean);
+      if (event.key === 'Escape' && !hasSelection && !appState?.editingTextElement) {
+        setIsDrawing(false);
+      }
+    }
+    workspace.addEventListener('keydown', leaveDrawingOnEscape, true);
+    return () => workspace.removeEventListener('keydown', leaveDrawingOnEscape, true);
+  }, [isDrawing]);
 
   function startPageDrag(event: React.PointerEvent<HTMLButtonElement>) {
     if (isLocked || !canEdit) {
@@ -188,16 +323,19 @@ export function CanvasWorkspace(props: CanvasWorkspaceProps) {
   }
 
   const pagePlacement = pageScreenTransform(pagePosition, viewport);
+  const isSelectionIncluded = selection.drawingId !== null && includedDrawingIds.has(selection.drawingId);
 
   return (
     <div
       ref={workspaceRef}
-      className="canvas-grid canvas-workspace relative isolate flex-1 overflow-hidden"
+      data-drawing={isDrawing}
+      className="canvas-grid canvas-workspace relative isolate flex-1 overflow-clip"
       style={gridBackgroundStyle(viewport)}
     >
       <Excalidraw
         excalidrawAPI={(excalidrawAPI) => {
           excalidrawAPIRef.current = excalidrawAPI;
+          handleCanvasPointerUp(excalidrawAPI);
           // Start with the page centered, whatever position it was saved at.
           requestAnimationFrame(() => centerOnPage(pagePositionRef.current));
         }}
@@ -206,11 +344,26 @@ export function CanvasWorkspace(props: CanvasWorkspaceProps) {
           files: (initialScene?.files ?? {}) as never,
           appState: { viewBackgroundColor: 'transparent', currentItemFontFamily: 1 },
         }}
-        viewModeEnabled={!canEdit}
+        viewModeEnabled={!canEdit || !isDrawing}
         onScrollChange={(scrollX, scrollY, zoom) => setViewport({ scrollX, scrollY, zoom: zoom.value })}
-        onChange={(_elements, appState) => {
-          const selectedCount = Object.values(appState.selectedElementIds).filter(Boolean).length;
-          setSelectionSize((previousCount) => (previousCount === selectedCount ? previousCount : selectedCount));
+        onPointerUpdate={({ pointer, button }) => {
+          const appState = excalidrawAPIRef.current?.getAppState();
+          const workspaceBounds = workspaceRef.current?.getBoundingClientRect();
+          if (!appState || !workspaceBounds) {
+            return;
+          }
+          const isDraggingSelection = button === 'down' && appState.selectedElementsAreBeingDragged;
+          const clientX = workspaceBounds.left + (pointer.x + appState.scrollX) * appState.zoom.value;
+          const clientY = workspaceBounds.top + (pointer.y + appState.scrollY) * appState.zoom.value;
+          const shouldHighlight = isDraggingSelection && isOverPage(clientX, clientY);
+          setIsDropTargetActive((wasActive) => (wasActive === shouldHighlight ? wasActive : shouldHighlight));
+        }}
+        onChange={(elements, appState) => {
+          const selectedElements = collectElementsForExport(elements, appState.selectedElementIds);
+          const nextSelection = { size: selectedElements.length, drawingId: sharedDrawingId(selectedElements) };
+          setSelection((previous) =>
+            previous.size === nextSelection.size && previous.drawingId === nextSelection.drawingId ? previous : nextSelection,
+          );
           queueCurrentScene();
         }}
         UIOptions={{
@@ -227,8 +380,14 @@ export function CanvasWorkspace(props: CanvasWorkspaceProps) {
       />
 
       {/* z-index 3: above Excalidraw's canvases (1–2), below its toolbars and menus (4+). */}
-      <div ref={pageLayerRef} className="pointer-events-none absolute inset-0 z-3">
+      <div
+        ref={pageLayerRef}
+        className="pointer-events-none absolute inset-0 z-3 overflow-clip"
+        // Clicking the page means "back to writing".
+        onPointerDown={() => isDrawing && setIsDrawing(false)}
+      >
         <div
+          ref={pageRef}
           className="canvas-page pointer-events-auto absolute left-0 top-0"
           style={{
             width: PAGE_WIDTH,
@@ -250,23 +409,28 @@ export function CanvasWorkspace(props: CanvasWorkspaceProps) {
               {isLocked ? 'Page locked' : '⠿ Drag to move page'}
             </button>
           )}
-          {page}
+          <div className={isDropTargetActive ? 'rounded-sm ring-4 ring-primary/60 ring-offset-2' : undefined}>{page}</div>
+          {isDropTargetActive && (
+            <p className="print-hidden mt-2 text-center text-sm font-medium text-primary">Release to include in the document</p>
+          )}
         </div>
       </div>
 
       <CanvasControls
         isLocked={isLocked}
         canEdit={canEdit}
+        isDrawing={isDrawing}
         canvasSaveStatus={canvasAutosave.status}
+        onToggleDrawing={() => setIsDrawing((wasDrawing) => !wasDrawing)}
         onToggleLock={toggleLock}
         onResetPosition={resetPagePosition}
         onPrint={onPrint}
       />
-      {canEdit && selectionSize > 0 && (
+      {canEdit && isDrawing && selection.size > 0 && (
         <IncludeDrawingChip
-          onInclude={() => {
-            void exportSelection().then((imageSource) => imageSource && onIncludeDrawing(imageSource));
-          }}
+          isIncluded={isSelectionIncluded}
+          onInclude={() => void includeSelection()}
+          onRemove={() => selection.drawingId && onRemoveDrawing(selection.drawingId)}
         />
       )}
     </div>

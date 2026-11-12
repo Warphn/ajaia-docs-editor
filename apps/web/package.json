@@ -29,6 +29,7 @@
     "@tanstack/react-query": "^5.107.1",
     "@tiptap/core": "^3.33.1",
     "@tiptap/extension-image": "^3.33.1",
+    "@tiptap/extension-text-style": "^3.33.1",
     "@tiptap/extensions": "^3.33.1",
     "@tiptap/pm": "^3.33.1",
     "@tiptap/react": "^3.33.1",
