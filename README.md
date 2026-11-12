@@ -20,8 +20,9 @@ To try sharing, sign in as two people in different browsers (or one normal + one
 - **Documents:** create, rename (inline title), edit, delete; reopen with formatting intact.
 - **Templates for tech teams:** start a document from a feature spec, technical design (RFC), client feature presentation, status update for management, or incident postmortem.
 - **Rich text:** headings (H1–H3), bold, italic, underline, strikethrough, bulleted and numbered lists, quotes, code blocks, undo/redo, keyboard shortcuts.
-- **Canvas around the page:** the dotted background is a whiteboard (Excalidraw). Sketch diagrams next to the text, then click **Include in document** or drag it onto the page to embed the drawing. The page can be dragged around the canvas, locked in place, or reset. Drawings are saved with the document and visible to everyone with access (read-only for viewers). Screens narrower than 768 px use the classic layout.
-- **Export PDF:** prints only the page (never the canvas), using the browser's "Save as PDF".
+- **Canvas around the page:** the dotted background is a whiteboard (Excalidraw). Click **Draw** to show the drawing tools (Esc, **Done drawing** or clicking the page returns to writing). Drag a drawing onto the page — or click **Include in document** — to embed it; select it again and the same button becomes **Remove from document**. The page can be dragged around the canvas, locked in place, or reset. Drawings are saved with the document and visible to everyone with access (read-only for viewers). Screens narrower than 768 px use the classic layout.
+- **A4 pages, exported as edited:** the sheet is A4 with 25 mm margins and shows dashed page-break guides while you type. **Export PDF** prints exactly that layout (same line and page breaks), without the canvas and without the browser's header/footer.
+- **Fonts:** default IBM Plex Sans plus Arial, Times New Roman, Georgia, Roboto and Courier New.
 - **Diagrams as code:** insert a Mermaid diagram (flowchart, sequence, ER…) and edit it with a live preview. ` ```mermaid ` blocks in imported Markdown become diagrams.
 - **Autosave** with a visible status, `Ctrl/Cmd+S`, and protection against overwriting someone else's newer save.
 - **File import:** upload **`.txt`, `.md` or `.docx` (max 5 MB)** to create a new editable document. Headings, emphasis, lists, images (embedded) and Mermaid code fences are preserved; tables in `.docx` are flattened to text.
@@ -34,7 +35,9 @@ To try sharing, sign in as two people in different browsers (or one normal + one
 | ![Editor with formatting and autosave](docs/screenshots/editor.png) | ![Share dialog with roles](docs/screenshots/share-dialog.png) |
 | **Shared with me** (recipient's view) | **View-only** access |
 | ![Shared with me list](docs/screenshots/shared-with-me.png) | ![Read-only editor for viewers](docs/screenshots/view-only.png) |
-| **Canvas: drawings around the page** | **Draw, then include in the document** |
+| **Writing mode: A4 page with page-break guides** | **Drawing mode: drag a drawing onto the page** |
+| ![A4 page with page-break guides](docs/screenshots/page-guides.png) | ![Dragging a drawing onto the page](docs/screenshots/drawing-drop.png) |
+| **Canvas: drawings around the page** | **Include / remove toggle** |
 | ![Canvas with drawings around the page](docs/screenshots/canvas.png) | ![Include drawing in document](docs/screenshots/canvas-include.png) |
 | **Templates** | **Mermaid diagrams** |
 | ![Template gallery](docs/screenshots/templates.png) | ![Diagram editor with live preview](docs/screenshots/diagram-editor.png) |
@@ -68,7 +71,7 @@ Configuration: see [`apps/api/.env.example`](apps/api/.env.example) (`DATABASE_U
 npm test
 ```
 
-Runs 79 tests: API unit and integration tests (on an in-memory Postgres) and web unit tests. Details: [docs/testing.md](docs/testing.md).
+Runs 85 tests: API unit and integration tests (on an in-memory Postgres) and web unit tests. Details: [docs/testing.md](docs/testing.md).
 
 ## API Documentation (Swagger)
 

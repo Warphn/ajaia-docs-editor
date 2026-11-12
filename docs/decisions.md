@@ -76,6 +76,18 @@ Each entry: decision, alternatives considered, tradeoff, reason.
 - **Storage:** the scene is a `jsonb` column on `documents`, saved through its own endpoint and excluded from document queries. Included drawings are SVG `data:` URIs inside the HTML, so sharing, printing and export need no extra storage or access rules; the sanitizer only accepts `data:image/*` sources.
 - **Page lock** is a per-browser preference, not document data, so one person locking the page never blocks a collaborator.
 
-### 15. Accepted dependency advisories
+### 15. A4 pages with guides instead of true pagination
+- **Context:** the product owner could not tell where the PDF would break pages on an infinite page, and the browser added its own header/footer to the PDF.
+- **Decision:** make the on-screen sheet exactly the printed page (A4, 25 mm margins, same fonts) and draw page-break guides at every 247 mm of content; print with `@page { margin: 0 }` (no browser header/footer) and cloned padding on each page.
+- **Alternatives:** true paginated editing (separate page boxes, content reflow — Google Docs-level layout engine); generating PDFs with a library (pdfmake/jsPDF) or server-side headless Chrome.
+- **Tradeoff:** guides are exact for text but can drift when an image is pushed to the next page; page size is fixed to A4 (product owner's choice).
+- **Reason:** the browser is the same layout engine for editing and printing, so what is on screen is what is exported, at no extra cost. A PDF library would lay out text differently than the editor, and server-side Chrome does not fit a free 512 MB instance.
+
+### 16. Drawing mode and include/remove semantics
+- **Decision:** a separate drawing mode (product owner's choice over auto-showing tools on canvas click); included drawings are linked to their canvas elements by an id in Excalidraw's `customData` and `data-drawing-id` on the image.
+- **Tradeoff:** copies of tagged elements (copy/paste on the canvas) carry the same id and are treated as the same drawing.
+- **Reason:** a calm canvas while writing, and a single button that both includes and removes without a separate table of drawing records.
+
+### 17. Accepted dependency advisories
 `npm audit` reports moderate advisories in `drizzle-kit`'s bundled esbuild (dev server issue). `drizzle-kit` is a dev-only CLI for generating migrations; it is not part of the running app. Accepted.
 Excalidraw 0.18.1 pins older versions of `mermaid`/`langium`/`lodash-es` (used only by its optional "Mermaid to Excalidraw" dialog) and `nanoid`. They run in the browser on the user's own input, and the only offered fix is downgrading Excalidraw. Accepted until an upstream release; non-breaking fixes were applied with `npm audit fix`.

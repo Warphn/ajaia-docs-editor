@@ -49,10 +49,21 @@ On screens ≥ 768 px the editor is an infinite whiteboard ([Excalidraw](https:/
 
 - **Page as an overlay:** the page is normal DOM (so TipTap works unchanged) placed in canvas coordinates with `translate((page + scroll) × zoom) scale(zoom)` — the same math Excalidraw uses for its elements ([`page-geometry.ts`](../apps/web/src/canvas/page-geometry.ts)). It sits at z-index 3: above Excalidraw's canvases, below its toolbars. Wheel and Ctrl+wheel over the page are forwarded to the canvas so navigation feels the same everywhere; the dotted background moves and scales with the view.
 - **Move / lock / reset:** drag the handle above the page; **Lock page** disables the handle (a per-browser preference in `localStorage`, so it never affects collaborators); **Reset position** puts the page back at the origin and recenters. The page position is saved with the drawings, so the layout survives reloads.
-- **Include in document:** selecting drawings shows a chip. Click → the selection (expanded to bound text and group members) is exported with `exportToSvg` (fonts inlined) and inserted as an image at the cursor; drag the chip onto the page → inserted where it is dropped (`handleDrop` + `posAtCoords`). The drawing stays on the canvas to be edited and included again; the inserted image is a static snapshot.
+- **Writing vs drawing mode:** by default Excalidraw runs in view mode with its toolbars hidden (`data-drawing="false"`), so the canvas is calm while writing. **Draw** shows the tools; **Done drawing**, Esc (once nothing is selected) or clicking the page goes back.
+- **Include in document:** drag selected drawings onto the page (detected with Excalidraw's `onPointerUp` + `pointerDownState`; the page is highlighted while hovering and the originals are restored to where they were), or use the chip. The selection (expanded to bound text and group members) is exported with `exportToSvg` (fonts inlined) and inserted **between blocks** at the drop point (upper half of a block → before it, lower half → after it), never splitting a paragraph.
+- **Include / remove toggle:** each inclusion gets a drawing id stored in the elements' `customData` and in the image (`data-drawing-id`). Selecting those elements again turns the chip into **Remove from document**; dropping an included drawing again moves it instead of duplicating. The image is a static snapshot: edit on the canvas and include again.
+- **Cursor following:** typing near the bottom pans the canvas (`handleScrollToSelection`) instead of letting the browser scroll elements; the workspace uses `overflow: clip` so it can never be scrolled out of place.
 - **Persistence:** debounced autosave (1 s) of elements + pasted images + page position; a fingerprint of element versions avoids saving on pointer moves and selection changes. Viewers get Excalidraw's view mode.
 - **Keyboard and clipboard isolation:** Excalidraw only listens to keys inside its own container and ignores paste when focus is elsewhere, so typing in the page never triggers drawing shortcuts.
-- **Export PDF:** `window.print()` with a print stylesheet that hides the app chrome and the whole canvas and lays the page out normally; the document title becomes the PDF file name.
+- **Export PDF:** `window.print()` with a print stylesheet that hides the app chrome and the whole canvas; the document title becomes the PDF file name.
+
+## Pages: what you see is what you export
+
+The sheet is **A4 (210 mm) with 25 mm margins** on screen and in print ([`page-format.ts`](../apps/web/src/editor/page-format.ts)), so lines wrap at the same place. A `ResizeObserver` counts how many 247 mm content areas the text fills and draws dashed **page-break guides** where the PDF will start a new page ([`PageBreakGuides.tsx`](../apps/web/src/editor/PageBreakGuides.tsx)); the sheet grows a whole page at a time. In print, `@page { size: A4; margin: 0 }` removes the browser's header/footer (date, URL, page count) and the sheet's padding is repeated on every page with `box-decoration-break: clone`. Verified by generating PDFs with headless Chrome: the first line after each guide is the first line of the next PDF page. Caveat: an image that does not fit at the bottom of a page moves to the next one, shifting later breaks slightly.
+
+## Fonts
+
+TipTap's `TextStyle` + `FontFamily` with six options ([`font-options.ts`](../apps/web/src/editor/font-options.ts)): the default IBM Plex Sans, Arial, Times New Roman, Georgia, Courier New (installed on Windows/macOS) and Roboto (Google Fonts). Stored as `<span style="font-family: …">`; the API sanitizer accepts only font names in that style.
 
 ## Diagrams
 

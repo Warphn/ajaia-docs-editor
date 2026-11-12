@@ -31,7 +31,7 @@ All passwords: `demo1234` (the login page also has one-click buttons).
 | Screenshots | [`docs/screenshots/`](docs/screenshots) (also embedded in the README) |
 | Module documentation | [`docs/backend.md`](docs/backend.md), [`docs/frontend.md`](docs/frontend.md), [`docs/database/database.md`](docs/database/database.md) (+ ER diagram), [`docs/testing.md`](docs/testing.md) |
 | Deployment definition | [`render.yaml`](render.yaml) (Render Blueprint: web service + Postgres) |
-| Automated tests | 79 tests, run with `npm test` ([strategy](docs/testing.md)) |
+| Automated tests | 85 tests, run with `npm test` ([strategy](docs/testing.md)) |
 | Original brief | [`docs/assignment-brief.md`](docs/assignment-brief.md) |
 
 ## Status
@@ -43,7 +43,9 @@ All passwords: `demo1234` (the login page also has one-click buttons).
 - Persistence in PostgreSQL; formatting preserved across reloads.
 - Templates for tech-team documents (feature spec, RFC, client presentation, management update, postmortem).
 - Mermaid diagrams in documents, with live-preview editing.
-- Canvas around the page (≥ 768 px): draw with Excalidraw, include drawings by click or drag, move/lock/reset the page, drawings saved with the document; Export PDF prints only the page.
+- Canvas around the page (≥ 768 px): drawing mode with Excalidraw tools, drag a drawing onto the page or click to include, same button removes it, move/lock/reset the page, drawings saved with the document.
+- A4 pages with page-break guides while editing; Export PDF prints exactly that layout (page only, no browser header/footer).
+- Fonts: IBM Plex Sans (default), Arial, Times New Roman, Georgia, Roboto, Courier New.
 
 **Incomplete / intentionally out of scope:** real-time co-editing and presence (concurrent text saves are detected and the user reloads; the canvas is last-write-wins), comments, version history, Markdown export, sign-up and password reset, file attachments. Included drawings are static images (edit on the canvas and include again).
 

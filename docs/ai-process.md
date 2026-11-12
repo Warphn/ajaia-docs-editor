@@ -62,11 +62,15 @@ The plan ([architecture](./architecture.md)) split the work into commit-sized st
 | Rendering diagrams in a dialog opened from inside the editor | Dialog moved to a React portal on `<body>` before it shipped | Inputs inside ProseMirror's DOM can be captured by the editor; a portal keeps the textarea independent |
 | Canvas spike before coding | Read Excalidraw 0.18's `.d.ts` and built CSS first: confirmed `onScrollChange`/`updateScene`/`exportToSvg`, that its root creates no stacking context (so the page can sit at z-index 3 between canvas and toolbars), and that keyboard/paste handlers ignore focus outside its container | Avoided building on guessed APIs and an input-capture bug |
 | Excalidraw install | The app went blank: npm installed React 18 for an Excalidraw sub-dependency next to the app's React 19. Diagnosed from the error ("reading 'useEffect' of null") and `npm explain`; an npm `overrides` attempt failed, the fix was pinning React 19 at the workspace root (single copy) plus Vite `dedupe`, verified with a clean `npm ci` | Found by the browser check, not by type-checking or unit tests |
+| Page-only PDF without browser header/footer | Spiked before building: rendered a 70-paragraph A4 page through headless Chrome's print pipeline to confirm `@page { margin: 0 }` + `box-decoration-break: clone` keeps margins on every page | The rest of the page-guide design depended on it |
+| Text cursor near the bottom of the page | Browser test showed the whole workspace (Excalidraw toolbar, page, controls) shifted up: `overflow: hidden` containers are still programmatically scrollable. Fixed with `overflow: clip` and canvas panning that follows the caret | Visible only in a real browser with a page taller than the viewport |
+| Dropping a drawing on a paragraph | First version used the exact drop position and split "Second paragraph" in two in the exported PDF. Changed to insert between top-level blocks | Found by reading the generated PDF, not the DOM assertions |
+| Verification script false alarms | Two failures came from the test script itself (keys sent to the `<select>` before focus returned to the editor; reading the canvas before the 1 s debounce fired; a regex not expecting `&quot;`). Each was isolated with a minimal reproduction before concluding it was not a product bug | Avoids "fixing" correct code |
 | Initial bundle of 732 kB (230 kB gzip) | Editor route lazy-loaded → 316 kB (100 kB gzip) initial | Login and list don't need ProseMirror |
 
 ## How correctness, UX and reliability were verified
 
-- **Automated:** 79 tests (`npm test`): access rules, sanitizer, importers, full sharing flow over HTTP + SQL, import endpoint limits, autosave behavior. See [testing](./testing.md).
+- **Automated:** 85 tests (`npm test`): access rules, sanitizer, importers, full sharing flow over HTTP + SQL, import endpoint limits, autosave behavior. See [testing](./testing.md).
 - **Database parity:** the same integration suite passed on PGlite and on Postgres 17 (Docker), covering both production and local drivers.
 - **Types and build:** strict TypeScript (`noUncheckedIndexedAccess`) and production builds of both apps on every step.
 - **Real browser:** a scripted Chrome walkthrough as two users (owner shares → recipient sees it under "Shared with me", read-only), reload to confirm formatting persists, mobile viewport check, and no unexpected console errors.
@@ -98,6 +102,7 @@ The plan ([architecture](./architecture.md)) split the work into commit-sized st
 | 18:05 | Templates and diagrams verified live; SUBMISSION.md, screenshots |
 | — | Second iteration requested by the product owner: canvas around the page (plan → user chose draggable page + saved canvas) |
 | +1h45 | Canvas API, Excalidraw workspace, include-in-document, lock/reset, print-only-page, docs |
+| — | Third iteration from product-owner feedback: drawing mode, drag drawing to page, include/remove toggle, A4 WYSIWYG export with page guides, fonts (asked: page size → A4; drawing mode → explicit button) |
 
 ## Out of scope, and what's next with 2–4 more hours
 
