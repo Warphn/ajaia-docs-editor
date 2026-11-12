@@ -28,6 +28,17 @@ describe('sanitizeDocumentHtml', () => {
     expect(sanitizeDocumentHtml('<b>a</b><i>b</i><h5>c</h5>')).toBe('<strong>a</strong><em>b</em><h3>c</h3>');
   });
 
+  it('turns Markdown strikethrough (<del>) into the editor strike tag', () => {
+    expect(sanitizeDocumentHtml('<p><del>old</del> <strike>older</strike></p>')).toBe('<p><s>old</s> <s>older</s></p>');
+  });
+
+  it('keeps the code block language class and no other class', () => {
+    expect(sanitizeDocumentHtml('<pre><code class="language-ts evil">const a = 1;</code></pre>')).toBe(
+      '<pre><code class="language-ts">const a = 1;</code></pre>',
+    );
+    expect(sanitizeDocumentHtml('<p class="language-ts">text</p>')).toBe('<p>text</p>');
+  });
+
   it('keeps diagram blocks with only their data attributes', () => {
     const html = '<div data-type="mermaid" data-source="graph TD; A--&gt;B" style="color:red">x</div>';
 

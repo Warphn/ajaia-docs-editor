@@ -29,6 +29,10 @@ const SANITIZE_OPTIONS: sanitize.IOptions = {
     ol: ['start'],
     span: ['style'],
   },
+  // The code block's language (TipTap and Markdown importers both use class="language-…").
+  allowedClasses: {
+    code: ['language-*'],
+  },
   // Only font names are allowed in styles: letters, digits, spaces, commas, quotes and hyphens
   // (no url(), no semicolons), so a style attribute cannot load resources or inject other CSS.
   allowedStyles: {
@@ -40,6 +44,9 @@ const SANITIZE_OPTIONS: sanitize.IOptions = {
     // Normalize equivalent tags produced by importers (e.g. .docx) to what the editor uses.
     b: 'strong',
     i: 'em',
+    // Markdown's ~~strikethrough~~ is rendered as <del>.
+    del: 's',
+    strike: 's',
     h4: 'h3',
     h5: 'h3',
     h6: 'h3',
