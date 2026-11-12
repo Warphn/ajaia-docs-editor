@@ -9,9 +9,15 @@ export interface TestContext {
   close: () => Promise<void>;
 }
 
-/** Builds the real app on top of a fresh, seeded, in-memory Postgres (PGlite). */
+/**
+ * Builds the real app on top of a seeded database: a fresh in-memory Postgres (PGlite) by default,
+ * or a real Postgres server when TEST_DATABASE_URL is set (validates the production driver).
+ */
 export async function createTestApp(): Promise<TestContext> {
-  const connection = await connectDatabase({ databaseUrl: undefined, pgliteDataDir: undefined });
+  const connection = await connectDatabase({
+    databaseUrl: process.env.TEST_DATABASE_URL,
+    pgliteDataDir: undefined,
+  });
   await seedDemoData(connection.db);
   const app = await buildApp({ db: connection.db, jwtSecret: 'test-secret', isProduction: false });
   await app.ready();

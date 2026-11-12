@@ -1,0 +1,22 @@
+# Render Blueprint: one free web service that serves both the API and the built React app.
+# The database is an external free Postgres (Neon); paste its connection string into DATABASE_URL.
+services:
+  - type: web
+    name: ajaia-docs
+    runtime: node
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: SEED_DEMO_DATA
+        value: "true"
