@@ -12,6 +12,16 @@ export function useDocumentList() {
   return useQuery({ queryKey: documentKeys.list, queryFn: api.listDocuments });
 }
 
+export function useTemplates({ enabled }: { enabled: boolean }) {
+  return useQuery({
+    queryKey: ['templates'],
+    queryFn: api.listTemplates,
+    enabled,
+    // Templates ship with the code; they never change while the app is open.
+    staleTime: Infinity,
+  });
+}
+
 export function useDocument(documentId: string) {
   return useQuery({
     queryKey: documentKeys.detail(documentId),

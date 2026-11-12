@@ -2,8 +2,9 @@ import { and, desc, eq, sql } from 'drizzle-orm';
 import type { Database } from '../../db/client.js';
 import { documents, documentShares, users, type DocumentRecord } from '../../db/schema.js';
 import { canDelete, canEdit, type DocumentAccess } from '../../lib/access-control.js';
-import { conflict, forbidden } from '../../lib/errors.js';
+import { badRequest, conflict, forbidden } from '../../lib/errors.js';
 import { sanitizeDocumentHtml } from '../../lib/sanitize-html.js';
+import { findTemplate } from '../templates/template-catalog.js';
 import type { PublicUser } from '../users/user.schemas.js';
 import { loadAccessibleDocument } from './document-access.js';
 import {
@@ -17,6 +18,7 @@ import {
 export interface CreateDocumentInput {
   title?: string | undefined;
   contentHtml?: string | undefined;
+  templateId?: string | undefined;
 }
 
 const ownerColumns = { id: users.id, email: users.email, name: users.name };
@@ -45,12 +47,17 @@ export function createDocumentsService(db: Database) {
   }
 
   async function createDocument(userId: string, input: CreateDocumentInput): Promise<DocumentDetail> {
+    const template = input.templateId === undefined ? undefined : findTemplate(input.templateId);
+    if (input.templateId !== undefined && !template) {
+      throw badRequest(`Unknown template "${input.templateId}".`);
+    }
+
     const [created] = await db
       .insert(documents)
       .values({
         ownerId: userId,
-        title: input.title?.trim() || DEFAULT_DOCUMENT_TITLE,
-        contentHtml: sanitizeDocumentHtml(input.contentHtml ?? ''),
+        title: input.title?.trim() || template?.defaultTitle || DEFAULT_DOCUMENT_TITLE,
+        contentHtml: sanitizeDocumentHtml(input.contentHtml ?? template?.contentHtml ?? ''),
       })
       .returning();
     return getDocument(userId, created!.id);

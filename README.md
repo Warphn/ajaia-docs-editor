@@ -18,6 +18,7 @@ To try sharing, sign in as two people in different browsers (or one normal + one
 ## Features
 
 - **Documents:** create, rename (inline title), edit, delete; reopen with formatting intact.
+- **Templates for tech teams:** start a document from a feature spec, technical design (RFC), client feature presentation, status update for management, or incident postmortem.
 - **Rich text:** headings (H1–H3), bold, italic, underline, strikethrough, bulleted and numbered lists, quotes, code blocks, undo/redo, keyboard shortcuts.
 - **Autosave** with a visible status, `Ctrl/Cmd+S`, and protection against overwriting someone else's newer save.
 - **File import:** upload **`.txt`, `.md` or `.docx` (max 5 MB)** to create a new editable document. Headings, emphasis and lists are preserved; images and tables in `.docx` are not supported.
@@ -52,7 +53,7 @@ Configuration: see [`apps/api/.env.example`](apps/api/.env.example) (`DATABASE_U
 npm test
 ```
 
-Runs 46 tests: API unit and integration tests (on an in-memory Postgres) and web unit tests. Details: [docs/testing.md](docs/testing.md).
+Runs 54+ tests: API unit and integration tests (on an in-memory Postgres) and web unit tests. Details: [docs/testing.md](docs/testing.md).
 
 ## API Documentation (Swagger)
 

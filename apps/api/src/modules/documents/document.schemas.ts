@@ -36,7 +36,8 @@ export const documentListSchema = z.object({
 });
 
 export const createDocumentBodySchema = z.object({
-  title: titleSchema.optional().describe(`Defaults to "${DEFAULT_DOCUMENT_TITLE}"`),
+  title: titleSchema.optional().describe(`Defaults to the template's title, or "${DEFAULT_DOCUMENT_TITLE}"`),
+  templateId: z.string().optional().describe('Start from a template (ids from GET /api/templates)'),
 });
 
 export const updateDocumentBodySchema = z

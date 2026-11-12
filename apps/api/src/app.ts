@@ -20,6 +20,7 @@ import { createDocumentsService } from './modules/documents/documents.service.js
 import { importsRoutes } from './modules/imports/imports.routes.js';
 import { sharesRoutes } from './modules/shares/shares.routes.js';
 import { createSharesService } from './modules/shares/shares.service.js';
+import { templatesRoutes } from './modules/templates/templates.routes.js';
 
 export interface AppOptions {
   db: Database;
@@ -52,6 +53,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
         { name: 'auth', description: 'Sign in / sign out (seeded demo accounts)' },
         { name: 'documents', description: 'Create, open, edit, rename and delete documents' },
         { name: 'sharing', description: 'Grant, change and revoke access to a document' },
+        { name: 'templates', description: 'Starting points for common tech-team documents' },
         { name: 'health', description: 'Service status' },
       ],
       components: {
@@ -73,6 +75,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
   await app.register(documentsRoutes, { documentsService });
   await app.register(importsRoutes, { documentsService });
   await app.register(sharesRoutes, { sharesService });
+  await app.register(templatesRoutes);
 
   app.withTypeProvider<ZodTypeProvider>().get(
     '/api/health',

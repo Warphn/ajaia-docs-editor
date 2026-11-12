@@ -38,7 +38,9 @@ export const documentsRoutes: FastifyPluginAsyncZod<DocumentsRoutesOptions> = as
       schema: {
         tags: ['documents'],
         summary: 'Create a document',
-        description: 'Creates an empty document owned by the signed-in user.',
+        description:
+          'Creates a document owned by the signed-in user: empty, or prefilled from a template ' +
+          '(400 for an unknown templateId).',
         security: sessionSecurity,
         body: createDocumentBodySchema,
         response: { 201: documentDetailSchema, 400: errorResponseSchema, 401: errorResponseSchema },

@@ -58,5 +58,10 @@ Each entry: decision, alternatives considered, tradeoff, reason.
 - Editor route lazy-loaded: the login page and list load ≈ 100 kB gzip instead of ≈ 230 kB.
 - Latest stable libraries at the time of writing (TypeScript 7, Zod 4, React 19, Vite 8, TipTap 3). APIs were checked against the installed packages' own docs and types before use.
 
-### 12. Accepted dependency advisories
+### 12. Templates live in code, not in the database
+- **Alternatives:** A `templates` table with an admin UI; user-defined templates.
+- **Tradeoff:** Adding a template needs a deploy.
+- **Reason:** Five curated templates cover the recurring tech-team documents (spec, RFC, client announcement, management update, postmortem). In code they are reviewed like any change and a unit test guarantees each one renders exactly in the editor. User-defined templates ("save as template") are a natural next step.
+
+### 13. Accepted dependency advisories
 `npm audit` reports moderate advisories in `drizzle-kit`'s bundled esbuild (dev server issue). `drizzle-kit` is a dev-only CLI for generating migrations; it is not part of the running app. Accepted.

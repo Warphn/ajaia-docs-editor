@@ -18,6 +18,8 @@ Test where the risk is: access control, data integrity and the save loop. UI ren
 | Unit | [`file-to-html.test.ts`](../apps/api/src/modules/imports/file-to-html.test.ts) | .txt/.md/.docx conversion (a real .docx is built in memory), 415/400 errors |
 | Integration | [`documents-and-sharing.test.ts`](../apps/api/test/documents-and-sharing.test.ts) | Full flow through HTTP + SQL: login, create, save, reopen, 409 on stale version, share as viewer (read OK, edit 403), upgrade to editor, non-owner cannot share/delete, unrelated user gets 404, revoke, delete |
 | Integration | [`import.test.ts`](../apps/api/test/import.test.ts) | Multipart upload creates an owned document; sanitization of imported HTML; 413, 415, 401 |
+| Unit | [`template-catalog.test.ts`](../apps/api/src/modules/templates/template-catalog.test.ts) | Every template only uses markup the editor supports (unchanged by the sanitizer), ids are unique |
+| Integration | [`templates.test.ts`](../apps/api/test/templates.test.ts) | Listing, creating from a template (title + content), explicit title wins, unknown template → 400 |
 | Integration | [`health.test.ts`](../apps/api/test/health.test.ts) | App boots, OpenAPI document is served |
 | Unit (web) | [`use-document-autosave.test.ts`](../apps/web/src/hooks/use-document-autosave.test.ts) | Debounce batching, version chaining, stop on 409, retry after network error |
 

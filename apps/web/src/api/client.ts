@@ -2,6 +2,7 @@ import type {
   DocumentChanges,
   DocumentDetail,
   DocumentList,
+  DocumentTemplate,
   Share,
   ShareRole,
   User,
@@ -75,4 +76,6 @@ export const api = {
     request<Share>('POST', `/api/documents/${documentId}/shares`, { email, role }),
   revokeShare: (documentId: string, userId: string) =>
     request<void>('DELETE', `/api/documents/${documentId}/shares/${userId}`),
+
+  listTemplates: () => request<{ templates: DocumentTemplate[] }>('GET', '/api/templates'),
 };

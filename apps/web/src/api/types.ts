@@ -34,6 +34,13 @@ export interface Share {
   createdAt: string;
 }
 
+export interface DocumentTemplate {
+  id: string;
+  name: string;
+  description: string;
+  audience: string;
+}
+
 export interface DocumentChanges {
   title?: string;
   contentHtml?: string;

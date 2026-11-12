@@ -18,6 +18,7 @@ apps/api/src
     documents/      CRUD + document-access (single query for document + caller's access)
     shares/         list, grant/change role, revoke
     imports/        file → HTML converters + multipart route
+    templates/      template catalog (in code) + list route
     users/          public user schema, email normalization
 ```
 
@@ -33,7 +34,7 @@ All routes except login/logout/health require the session cookie.
 | POST | `/api/auth/logout` | anyone | Clears the cookie |
 | GET | `/api/auth/me` | signed in | Current user |
 | GET | `/api/documents` | signed in | `{ owned, sharedWithMe }` |
-| POST | `/api/documents` | signed in | Create (optional title) |
+| POST | `/api/documents` | signed in | Create (optional `title`, optional `templateId`) |
 | POST | `/api/documents/import` | signed in | Multipart `file` (.txt/.md/.docx ≤ 5 MB) → new document |
 | GET | `/api/documents/:id` | any access | Document + caller's `access` + `version` |
 | PATCH | `/api/documents/:id` | owner, editor | Rename and/or save content; requires current `version` |
@@ -41,6 +42,7 @@ All routes except login/logout/health require the session cookie.
 | GET | `/api/documents/:id/shares` | any access | People with access |
 | POST | `/api/documents/:id/shares` | owner | Share by email with `viewer`/`editor` (upsert) |
 | DELETE | `/api/documents/:id/shares/:userId` | owner | Revoke |
+| GET | `/api/templates` | signed in | Template catalog (id, name, description, audience) |
 | GET | `/api/health` | anyone | Health check (used by Render) |
 
 ## Error contract

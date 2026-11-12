@@ -1,4 +1,5 @@
-import { FilePlus2, Trash2 } from 'lucide-react';
+import { FilePlus2, LayoutTemplate, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import type { DocumentSummary } from '../api/types';
 import { AccessBadge } from '../components/AccessBadge';
@@ -10,6 +11,7 @@ import {
   MAX_IMPORT_FILE_MEGABYTES,
   SUPPORTED_IMPORT_EXTENSIONS,
 } from '../components/ImportFileButton';
+import { TemplatePickerDialog } from '../components/TemplatePickerDialog';
 import { useCreateDocument, useDeleteDocument, useDocumentList, useImportDocument } from '../hooks/use-documents';
 import { formatRelativeTime } from '../lib/format-relative-time';
 
@@ -20,6 +22,7 @@ export function DocumentsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab: DocumentTab = searchParams.get('tab') === 'shared' ? 'shared' : 'mine';
 
+  const [isTemplatePickerOpen, setIsTemplatePickerOpen] = useState(false);
   const documentList = useDocumentList();
   const createDocument = useCreateDocument();
   const importDocument = useImportDocument();
@@ -55,6 +58,10 @@ export function DocumentsPage() {
               disabled={importDocument.isPending}
               onFileSelected={(file) => importDocument.mutate(file, { onSuccess: (document) => openDocument(document.id) })}
             />
+            <Button variant="secondary" onClick={() => setIsTemplatePickerOpen(true)}>
+              <LayoutTemplate size={16} aria-hidden="true" />
+              From template
+            </Button>
             <Button
               disabled={createDocument.isPending}
               onClick={() => createDocument.mutate({}, { onSuccess: (document) => openDocument(document.id) })}
@@ -115,6 +122,15 @@ export function DocumentsPage() {
           )}
         </section>
       </main>
+
+      <TemplatePickerDialog
+        isOpen={isTemplatePickerOpen}
+        onClose={() => setIsTemplatePickerOpen(false)}
+        isCreating={createDocument.isPending}
+        onPick={(templateId) =>
+          createDocument.mutate({ templateId }, { onSuccess: (document) => openDocument(document.id) })
+        }
+      />
     </div>
   );
 }
@@ -178,7 +194,9 @@ function EmptyState({ tab }: { tab: DocumentTab }) {
       {tab === 'mine' ? (
         <>
           <p className="font-medium">No documents yet</p>
-          <p className="mt-1 text-sm text-ink-muted">Create a new document or import a file to get started.</p>
+          <p className="mt-1 text-sm text-ink-muted">
+            Create a blank document, start from a template, or import a file.
+          </p>
         </>
       ) : (
         <>

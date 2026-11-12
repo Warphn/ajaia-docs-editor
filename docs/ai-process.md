@@ -89,6 +89,8 @@ The plan ([architecture](./architecture.md)) split the work into commit-sized st
 | 17:01 | Web app working end to end in a real browser |
 | 17:04 | Deploy blueprint, Postgres parity verified |
 | 17:15 | Documentation |
+| 17:30 | Deployed to Render, verified live |
+| 17:40 | Templates (5 tech-team documents) |
 
 ## Out of scope, and what's next with 2–4 more hours
 
