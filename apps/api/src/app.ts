@@ -16,6 +16,7 @@ import { authRoutes } from './modules/auth/auth.routes.js';
 import { createAuthService } from './modules/auth/auth.service.js';
 import { documentsRoutes } from './modules/documents/documents.routes.js';
 import { createDocumentsService } from './modules/documents/documents.service.js';
+import { importsRoutes } from './modules/imports/imports.routes.js';
 import { sharesRoutes } from './modules/shares/shares.routes.js';
 import { createSharesService } from './modules/shares/shares.service.js';
 
@@ -69,6 +70,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
 
   await app.register(authRoutes, { authService, isProduction: options.isProduction });
   await app.register(documentsRoutes, { documentsService });
+  await app.register(importsRoutes, { documentsService });
   await app.register(sharesRoutes, { sharesService });
 
   app.withTypeProvider<ZodTypeProvider>().get(
