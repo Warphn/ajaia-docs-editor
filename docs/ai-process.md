@@ -1,0 +1,93 @@
+# AI-native workflow
+
+How the work was split between a human and AI, what the AI produced, what was corrected, and how it was verified. Updated as the work progressed.
+
+## Tools
+
+| Tool | Used for |
+|---|---|
+| **Claude Code** (Claude Opus 5.5) in VS Code | Reading the brief, planning, scaffolding, implementation, tests, docs, git commits |
+| Claude Code *plan mode* | Producing the implementation plan before any code; the human approved it explicitly |
+| Headless Chrome via Playwright (driven by Claude Code) | Clicking through the built app, taking screenshots, checking mobile layout |
+| Docker (Postgres 17) | Running the integration suite on a real Postgres server |
+| [`CLAUDE.md`](../CLAUDE.md) | Persistent instructions to the agent: readable names, tests for business logic, Swagger on every route, docs layout, small conventional commits |
+
+## Division of work
+
+**Human decisions** (product and judgment):
+- Product direction: "the best Google Docs for teams at tech companies", with templates for recurring deliverables and quick diagrams.
+- Stack constraint: TypeScript + React, with a real database.
+- Approved the plan; picked **Mermaid over Excalidraw** and **viewer/editor roles in the core** when the AI laid out the tradeoffs.
+- Workflow: GitHub as the working source of truth; the Google Drive package is assembled at the end.
+
+**AI work** (execution, with its reasoning recorded here and in [decisions](./decisions.md)): stack details, architecture, code, tests, verification, documentation.
+
+## Decomposition
+
+The plan ([architecture](./architecture.md)) split the work into commit-sized steps, each verified before moving on:
+
+1. Scaffold the monorepo, Fastify + Swagger, Drizzle schema, PGlite fallback, seed → health test
+2. Auth, documents CRUD, access control, sanitizer, sharing → unit + integration tests
+3. File import (.txt/.md/.docx) → unit + endpoint tests
+4. React app: login, list, editor, autosave, share dialog → hook tests + browser walkthrough
+5. Deploy blueprint, Postgres parity check
+6. Docs (written alongside, finalized at the end)
+7. Templates, then Mermaid diagrams (differentiators, after the core is deployed)
+
+## Key prompts (summarized, translated from Portuguese)
+
+1. *"This is the assignment [4 screenshots]. Read everything, confirm, then create a repository with an initial commit."* → The AI transcribed the brief into [`docs/assignment-brief.md`](./assignment-brief.md) so every later decision could cite it.
+2. *"Implement the core first; all basic features must exist. TypeScript and React for back and front; we need a database. Focus on what teams at tech companies value: file presets (feature presentation for a client, update for management, feature planning) and quick diagrams like Excalidraw."* → Plan mode: the AI proposed the stack, data model, API, step order, and two explicit questions (diagram engine, sharing roles), and listed what it would cut first if time ran short (diagrams).
+
+## Where AI materially sped things up
+
+- **Boilerplate with intent:** Zod schemas that serve as validation, types and OpenAPI at once; consistent error contract across 13 routes.
+- **Test scaffolding:** an end-to-end sharing scenario (17 ordered steps through HTTP + SQL) and a `.docx` fixture built in memory with JSZip instead of committing binary files.
+- **Verification loop:** the agent built the app, drove a real browser through the main flow and read its own screenshots, which caught a layout bug a human would only spot on a phone.
+- **Docs and diagrams:** the ER diagram is generated as an SVG with the draw.io model embedded, so it renders on GitHub and stays editable.
+
+## What was changed or rejected
+
+| AI output / idea | What happened | Why |
+|---|---|---|
+| Writing code from memory for brand-new library majors (TypeScript 7, Zod 4, fastify-type-provider-zod 7, TipTap 3) | Corrected course: read the installed packages' READMEs and `.d.ts` files before writing integration code | Avoids confidently wrong APIs; e.g. the type provider v7 serializes with `z.output`, and TipTap 3 bundles Underline/Link in StarterKit |
+| Excalidraw embed for diagrams | Rejected (human choice, AI recommendation) in favor of Mermaid | ~1–2 MB bundle and higher risk vs diagrams-as-code engineers already use |
+| TipTap JSON as the storage format | Rejected for sanitized HTML | One format for editor, importers, templates and export ([decision 5](./decisions.md#5-store-content-as-sanitized-html)) |
+| Real-time collaboration | Deferred | Too large for the timebox; optimistic versioning prevents data loss instead |
+| First version of "reload after conflict" | Simplified by the AI on self-review (a nested `fetchQuery` wrapping `refetch`) | Needless indirection |
+| Sanitizer draft with an `exclusiveFilter` and a misleading comment | Removed | Did nothing; comment described behavior the code didn't have |
+| Unit test expecting `titleFromFileName('.md')` to fall back | Test failed: Node treats `.md` as a dotfile with no extension. Replaced with a realistic case | Such a file is already rejected (415) earlier; the test was asserting an impossible path |
+| Header layout | Browser screenshot at 390 px showed the title input squeezed to 0 px. Fixed with a compact header (logo-only, icon sign-out) | Found by verification, not by reading code |
+| Initial bundle of 732 kB (230 kB gzip) | Editor route lazy-loaded → 316 kB (100 kB gzip) initial | Login and list don't need ProseMirror |
+
+## How correctness, UX and reliability were verified
+
+- **Automated:** 46 tests (`npm test`): access rules, sanitizer, importers, full sharing flow over HTTP + SQL, import endpoint limits, autosave behavior. See [testing](./testing.md).
+- **Database parity:** the same integration suite passed on PGlite and on Postgres 17 (Docker), covering both production and local drivers.
+- **Types and build:** strict TypeScript (`noUncheckedIndexedAccess`) and production builds of both apps on every step.
+- **Real browser:** a scripted Chrome walkthrough as two users (owner shares → recipient sees it under "Shared with me", read-only), reload to confirm formatting persists, mobile viewport check, and no unexpected console errors.
+- **Swagger:** checked that every route appears at `/api/docs` with request and error schemas.
+
+## Assumptions made due to ambiguity
+
+- "Sharing" means access between named accounts in the same organization, not public links.
+- "File upload" is satisfied by importing a file into a new editable document.
+- Seeded accounts are acceptable as the user model (explicitly allowed by the brief).
+- Simultaneous editing must not lose data, but does not need to merge live.
+
+## Timeline
+
+| Time (local) | Milestone |
+|---|---|
+| 16:15 | Brief read, repo created and pushed |
+| 16:30 | Plan approved (stack, scope, order, two product questions answered) |
+| 16:48 | API scaffold + DB + Swagger, first tests green |
+| 16:51 | Auth, documents and sharing API, 29 tests |
+| 16:53 | File import, 42 tests |
+| 17:01 | Web app working end to end in a real browser |
+| 17:04 | Deploy blueprint, Postgres parity verified |
+| 17:15 | Documentation |
+
+## Out of scope, and what's next with 2–4 more hours
+
+See the README section [What is not included](../README.md#what-is-not-included).
