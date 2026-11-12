@@ -1,7 +1,7 @@
-import { FilePlus2, LayoutTemplate, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { FilePlus2, LayoutTemplate, Plus, Trash2, User as UserIcon, UserPlus, Users } from 'lucide-react';
+import { useState, type ComponentType } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import type { DocumentSummary } from '../api/types';
+import type { DocumentSummary, Team } from '../api/types';
 import { AccessBadge } from '../components/AccessBadge';
 import { AppHeader } from '../components/AppHeader';
 import { Avatar } from '../components/Avatar';
@@ -11,8 +11,10 @@ import {
   MAX_IMPORT_FILE_MEGABYTES,
   SUPPORTED_IMPORT_EXTENSIONS,
 } from '../components/ImportFileButton';
+import { CreateTeamDialog, TeamMembersDialog } from '../components/TeamDialogs';
 import { TemplatePickerDialog } from '../components/TemplatePickerDialog';
 import { useCreateDocument, useDeleteDocument, useDocumentList, useImportDocument } from '../hooks/use-documents';
+import { useTeamDocuments, useTeams } from '../hooks/use-teams';
 import { formatRelativeTime } from '../lib/format-relative-time';
 
 type DocumentTab = 'mine' | 'shared';
@@ -22,21 +24,38 @@ export function DocumentsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab: DocumentTab = searchParams.get('tab') === 'shared' ? 'shared' : 'mine';
 
+  const teams = useTeams();
+  const teamList = teams.data ?? [];
+  // The selected workspace lives in the URL (?team=<id>), so it survives reloads and can be linked.
+  const selectedTeam = teamList.find((team) => team.id === searchParams.get('team')) ?? null;
+  const teamNamesById = new Map(teamList.map((team) => [team.id, team.name]));
+
   const [isTemplatePickerOpen, setIsTemplatePickerOpen] = useState(false);
+  const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
+  const [isMembersDialogOpen, setIsMembersDialogOpen] = useState(false);
   const documentList = useDocumentList();
+  const teamDocuments = useTeamDocuments(selectedTeam?.id ?? null);
   const createDocument = useCreateDocument();
   const importDocument = useImportDocument();
   const deleteDocument = useDeleteDocument();
 
   const openDocument = (documentId: string) => navigate(`/documents/${documentId}`);
+  const selectWorkspace = (team: Team | null) => setSearchParams(team ? { team: team.id } : {});
+  // New, template and imported documents land in the selected team.
+  const teamScope = selectedTeam ? { teamId: selectedTeam.id } : {};
   const actionError = createDocument.error ?? importDocument.error ?? deleteDocument.error;
 
   const ownedDocuments = documentList.data?.owned ?? [];
   const sharedDocuments = documentList.data?.sharedWithMe ?? [];
-  const visibleDocuments = activeTab === 'mine' ? ownedDocuments : sharedDocuments;
+  const visibleQuery = selectedTeam ? teamDocuments : documentList;
+  const visibleDocuments = selectedTeam
+    ? (teamDocuments.data ?? [])
+    : activeTab === 'mine'
+      ? ownedDocuments
+      : sharedDocuments;
 
   function handleDelete(document: DocumentSummary) {
-    if (window.confirm(`Delete "${document.title}"? People it is shared with will lose access too.`)) {
+    if (window.confirm(`Delete "${document.title}"? Everyone with access will lose it too.`)) {
       deleteDocument.mutate(document.id);
     }
   }
@@ -46,17 +65,61 @@ export function DocumentsPage() {
       <AppHeader />
 
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
+        <nav aria-label="Workspaces" className="mb-6 flex flex-wrap items-center gap-2">
+          <WorkspaceButton
+            icon={UserIcon}
+            label="Personal"
+            isActive={selectedTeam === null}
+            onSelect={() => selectWorkspace(null)}
+          />
+          {teamList.map((team) => (
+            <WorkspaceButton
+              key={team.id}
+              icon={Users}
+              label={team.name}
+              isActive={selectedTeam?.id === team.id}
+              onSelect={() => selectWorkspace(team)}
+            />
+          ))}
+          <button
+            type="button"
+            onClick={() => setIsCreateTeamOpen(true)}
+            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-dashed border-line-strong px-3 text-sm text-ink-muted hover:border-primary hover:text-primary"
+          >
+            <Plus size={14} aria-hidden="true" />
+            New team
+          </button>
+        </nav>
+
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Documents</h1>
+          <div className="min-w-0">
+            <h1 className="truncate text-2xl font-semibold tracking-tight">{selectedTeam?.name ?? 'Documents'}</h1>
             <p className="mt-1 text-sm text-ink-muted">
+              {selectedTeam && 'Everyone in this team can open and edit these documents. '}
               Import {SUPPORTED_IMPORT_EXTENSIONS.join(', ')} files up to {MAX_IMPORT_FILE_MEGABYTES} MB.
             </p>
+            {selectedTeam && (
+              <button
+                type="button"
+                onClick={() => setIsMembersDialogOpen(true)}
+                className="mt-3 inline-flex items-center gap-2 rounded-md py-1 pr-2 text-sm text-ink-muted hover:text-ink"
+              >
+                <span className="flex -space-x-1.5">
+                  {selectedTeam.members.slice(0, 5).map((member) => (
+                    <Avatar key={member.id} name={member.name} size="sm" />
+                  ))}
+                </span>
+                {selectedTeam.members.length} {selectedTeam.members.length === 1 ? 'member' : 'members'}
+                <UserPlus size={15} aria-hidden="true" />
+              </button>
+            )}
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 sm:shrink-0">
             <ImportFileButton
               disabled={importDocument.isPending}
-              onFileSelected={(file) => importDocument.mutate(file, { onSuccess: (document) => openDocument(document.id) })}
+              onFileSelected={(file) =>
+                importDocument.mutate({ file, ...teamScope }, { onSuccess: (document) => openDocument(document.id) })
+              }
             />
             <Button variant="secondary" onClick={() => setIsTemplatePickerOpen(true)}>
               <LayoutTemplate size={16} aria-hidden="true" />
@@ -64,7 +127,7 @@ export function DocumentsPage() {
             </Button>
             <Button
               disabled={createDocument.isPending}
-              onClick={() => createDocument.mutate({}, { onSuccess: (document) => openDocument(document.id) })}
+              onClick={() => createDocument.mutate(teamScope, { onSuccess: (document) => openDocument(document.id) })}
             >
               <FilePlus2 size={16} aria-hidden="true" />
               New document
@@ -83,38 +146,50 @@ export function DocumentsPage() {
           </p>
         )}
 
-        <div role="tablist" aria-label="Document lists" className="mt-8 flex gap-1 border-b border-line">
-          <TabButton
-            isActive={activeTab === 'mine'}
-            onSelect={() => setSearchParams({})}
-            label="My documents"
-            count={ownedDocuments.length}
-          />
-          <TabButton
-            isActive={activeTab === 'shared'}
-            onSelect={() => setSearchParams({ tab: 'shared' })}
-            label="Shared with me"
-            count={sharedDocuments.length}
-          />
-        </div>
+        {selectedTeam ? (
+          <h2 className="mt-8 border-b border-line pb-2 text-sm font-medium">
+            Team documents
+            <span className="ml-1.5 text-xs text-ink-faint">{visibleDocuments.length}</span>
+          </h2>
+        ) : (
+          <div role="tablist" aria-label="Document lists" className="mt-8 flex gap-1 border-b border-line">
+            <TabButton
+              isActive={activeTab === 'mine'}
+              onSelect={() => setSearchParams({})}
+              label="My documents"
+              count={ownedDocuments.length}
+            />
+            <TabButton
+              isActive={activeTab === 'shared'}
+              onSelect={() => setSearchParams({ tab: 'shared' })}
+              label="Shared with me"
+              count={sharedDocuments.length}
+            />
+          </div>
+        )}
 
-        <section role="tabpanel" className="mt-4">
-          {documentList.isPending && <p className="py-10 text-center text-sm text-ink-muted">Loading documents…</p>}
-          {documentList.isError && (
+        <section role={selectedTeam ? undefined : 'tabpanel'} className="mt-4">
+          {visibleQuery.isPending && <p className="py-10 text-center text-sm text-ink-muted">Loading documents…</p>}
+          {visibleQuery.isError && (
             <div className="py-10 text-center text-sm">
-              <p className="text-danger">{documentList.error.message}</p>
-              <Button variant="secondary" className="mt-3" onClick={() => void documentList.refetch()}>
+              <p className="text-danger">{visibleQuery.error.message}</p>
+              <Button variant="secondary" className="mt-3" onClick={() => void visibleQuery.refetch()}>
                 Try again
               </Button>
             </div>
           )}
-          {documentList.isSuccess && visibleDocuments.length === 0 && <EmptyState tab={activeTab} />}
+          {visibleQuery.isSuccess && visibleDocuments.length === 0 && (
+            <EmptyState view={selectedTeam ? 'team' : activeTab} />
+          )}
           {visibleDocuments.length > 0 && (
             <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-sheet">
               {visibleDocuments.map((document) => (
                 <DocumentRow
                   key={document.id}
                   document={document}
+                  isTeamView={selectedTeam !== null}
+                  // In the personal list, owned team documents are labelled with their team.
+                  teamName={selectedTeam || !document.teamId ? undefined : teamNamesById.get(document.teamId)}
                   onDelete={document.access === 'owner' ? () => handleDelete(document) : undefined}
                 />
               ))}
@@ -128,10 +203,48 @@ export function DocumentsPage() {
         onClose={() => setIsTemplatePickerOpen(false)}
         isCreating={createDocument.isPending}
         onPick={(templateId) =>
-          createDocument.mutate({ templateId }, { onSuccess: (document) => openDocument(document.id) })
+          createDocument.mutate({ templateId, ...teamScope }, { onSuccess: (document) => openDocument(document.id) })
         }
       />
+      <CreateTeamDialog
+        isOpen={isCreateTeamOpen}
+        onClose={() => setIsCreateTeamOpen(false)}
+        onCreated={(team) => {
+          setIsCreateTeamOpen(false);
+          selectWorkspace(team);
+        }}
+      />
+      {selectedTeam && (
+        <TeamMembersDialog
+          team={selectedTeam}
+          isOpen={isMembersDialogOpen}
+          onClose={() => setIsMembersDialogOpen(false)}
+        />
+      )}
     </div>
+  );
+}
+
+function WorkspaceButton(props: {
+  icon: ComponentType<{ size?: number; 'aria-hidden'?: boolean }>;
+  label: string;
+  isActive: boolean;
+  onSelect: () => void;
+}) {
+  const { icon: Icon, label, isActive, onSelect } = props;
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-current={isActive ? 'page' : undefined}
+      className={
+        'inline-flex h-8 max-w-56 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors ' +
+        (isActive ? 'bg-primary text-white' : 'border border-line bg-sheet text-ink-muted hover:text-ink')
+      }
+    >
+      <Icon size={14} aria-hidden={true} />
+      <span className="truncate">{label}</span>
+    </button>
   );
 }
 
@@ -153,8 +266,15 @@ function TabButton(props: { isActive: boolean; onSelect: () => void; label: stri
   );
 }
 
-function DocumentRow({ document, onDelete }: { document: DocumentSummary; onDelete?: (() => void) | undefined }) {
-  const isShared = document.access !== 'owner';
+interface DocumentRowProps {
+  document: DocumentSummary;
+  isTeamView: boolean;
+  teamName?: string | undefined;
+  onDelete?: (() => void) | undefined;
+}
+
+function DocumentRow({ document, isTeamView, teamName, onDelete }: DocumentRowProps) {
+  const isOwnedByOther = document.access !== 'owner';
 
   return (
     <li className="group flex items-center gap-3 px-4 py-3 hover:bg-canvas/60">
@@ -162,17 +282,23 @@ function DocumentRow({ document, onDelete }: { document: DocumentSummary; onDele
         <span className="min-w-0 flex-1">
           <span className="block truncate font-medium">{document.title}</span>
           <span className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-muted">
-            {isShared && (
+            {isOwnedByOther && (
               <>
                 <Avatar name={document.owner.name} size="sm" />
-                <span>Shared by {document.owner.name}</span>
+                <span>{isTeamView ? 'By' : 'Shared by'} {document.owner.name}</span>
                 <span aria-hidden="true">•</span>
               </>
             )}
             <span>Edited {formatRelativeTime(document.updatedAt)}</span>
+            {teamName && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-canvas px-2 py-0.5 text-ink-muted">
+                <Users size={11} aria-hidden="true" />
+                {teamName}
+              </span>
+            )}
           </span>
         </span>
-        {isShared && <AccessBadge access={document.access} />}
+        {isOwnedByOther && !isTeamView && <AccessBadge access={document.access} />}
       </Link>
       {onDelete && (
         <button
@@ -188,22 +314,22 @@ function DocumentRow({ document, onDelete }: { document: DocumentSummary; onDele
   );
 }
 
-function EmptyState({ tab }: { tab: DocumentTab }) {
+function EmptyState({ view }: { view: DocumentTab | 'team' }) {
+  const messages = {
+    mine: { title: 'No documents yet', hint: 'Create a blank document, start from a template, or import a file.' },
+    shared: {
+      title: 'Nothing shared with you yet',
+      hint: 'When a teammate shares a document with you, it shows up here.',
+    },
+    team: {
+      title: 'No team documents yet',
+      hint: 'Documents you create, import or start from a template here are editable by the whole team.',
+    },
+  } as const;
   return (
     <div className="rounded-lg border border-dashed border-line-strong bg-sheet/70 px-6 py-12 text-center">
-      {tab === 'mine' ? (
-        <>
-          <p className="font-medium">No documents yet</p>
-          <p className="mt-1 text-sm text-ink-muted">
-            Create a blank document, start from a template, or import a file.
-          </p>
-        </>
-      ) : (
-        <>
-          <p className="font-medium">Nothing shared with you yet</p>
-          <p className="mt-1 text-sm text-ink-muted">When a teammate shares a document with you, it shows up here.</p>
-        </>
-      )}
+      <p className="font-medium">{messages[view].title}</p>
+      <p className="mt-1 text-sm text-ink-muted">{messages[view].hint}</p>
     </div>
   );
 }

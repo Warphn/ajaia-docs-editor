@@ -12,6 +12,7 @@ function savedDocument(version: number): DocumentDetail {
     title: 'Spec',
     access: 'owner',
     owner: { id: 'owner', email: 'alice@ajaia.dev', name: 'Alice Martins' },
+    teamId: null,
     contentHtml: '',
     version,
     createdAt: '2026-01-01T00:00:00.000Z',

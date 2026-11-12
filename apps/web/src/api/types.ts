@@ -14,7 +14,16 @@ export interface DocumentSummary {
   title: string;
   access: DocumentAccess;
   owner: User;
+  /** Team the document was created in; null for personal documents. */
+  teamId: string | null;
   updatedAt: string;
+}
+
+/** A project group: members can open and edit every document created in it. */
+export interface Team {
+  id: string;
+  name: string;
+  members: User[];
 }
 
 export interface DocumentDetail extends DocumentSummary {

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
 import type { ShareRole } from '../api/types';
 
@@ -44,11 +44,17 @@ export function useDocument(documentId: string) {
   });
 }
 
+/** Personal and team lists both show documents, so changes refresh both. */
+function invalidateDocumentLists(queryClient: QueryClient) {
+  void queryClient.invalidateQueries({ queryKey: documentKeys.list });
+  void queryClient.invalidateQueries({ queryKey: ['teams'] });
+}
+
 export function useCreateDocument() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: api.createDocument,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: documentKeys.list }),
+    onSuccess: () => invalidateDocumentLists(queryClient),
   });
 }
 
@@ -56,7 +62,7 @@ export function useImportDocument() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: api.importDocument,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: documentKeys.list }),
+    onSuccess: () => invalidateDocumentLists(queryClient),
   });
 }
 
@@ -64,7 +70,7 @@ export function useDeleteDocument() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: api.deleteDocument,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: documentKeys.list }),
+    onSuccess: () => invalidateDocumentLists(queryClient),
   });
 }
 

@@ -3,9 +3,11 @@ import type {
   DocumentChanges,
   DocumentDetail,
   DocumentList,
+  DocumentSummary,
   DocumentTemplate,
   Share,
   ShareRole,
+  Team,
   User,
 } from './types';
 
@@ -59,17 +61,24 @@ export const api = {
   getCurrentUser: () => request<{ user: User }>('GET', '/api/auth/me'),
 
   listDocuments: () => request<DocumentList>('GET', '/api/documents'),
-  createDocument: (input: { title?: string; templateId?: string } = {}) =>
+  createDocument: (input: { title?: string; templateId?: string; teamId?: string } = {}) =>
     request<DocumentDetail>('POST', '/api/documents', input),
   getDocument: (documentId: string) => request<DocumentDetail>('GET', `/api/documents/${documentId}`),
   updateDocument: (documentId: string, changes: DocumentChanges & { version: number }) =>
     request<DocumentDetail>('PATCH', `/api/documents/${documentId}`, changes),
   deleteDocument: (documentId: string) => request<void>('DELETE', `/api/documents/${documentId}`),
-  importDocument: (file: File) => {
+  importDocument: ({ file, teamId }: { file: File; teamId?: string | undefined }) => {
     const formData = new FormData();
     formData.append('file', file);
-    return request<DocumentDetail>('POST', '/api/documents/import', formData);
+    const query = teamId ? `?teamId=${encodeURIComponent(teamId)}` : '';
+    return request<DocumentDetail>('POST', `/api/documents/import${query}`, formData);
   },
+
+  listTeams: () => request<{ teams: Team[] }>('GET', '/api/teams'),
+  createTeam: (name: string) => request<Team>('POST', '/api/teams', { name }),
+  addTeamMember: (teamId: string, email: string) => request<Team>('POST', `/api/teams/${teamId}/members`, { email }),
+  listTeamDocuments: (teamId: string) =>
+    request<{ documents: DocumentSummary[] }>('GET', `/api/teams/${teamId}/documents`),
 
   listShares: (documentId: string) =>
     request<{ shares: Share[] }>('GET', `/api/documents/${documentId}/shares`),
