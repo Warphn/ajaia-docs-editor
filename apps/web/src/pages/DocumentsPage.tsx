@@ -6,6 +6,7 @@ import { AccessBadge } from '../components/AccessBadge';
 import { AppHeader } from '../components/AppHeader';
 import { Avatar } from '../components/Avatar';
 import { Button } from '../components/Button';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import {
   ImportFileButton,
   MAX_IMPORT_FILE_MEGABYTES,
@@ -33,6 +34,7 @@ export function DocumentsPage() {
   const [isTemplatePickerOpen, setIsTemplatePickerOpen] = useState(false);
   const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
   const [isMembersDialogOpen, setIsMembersDialogOpen] = useState(false);
+  const [documentPendingDeletion, setDocumentPendingDeletion] = useState<DocumentSummary | null>(null);
   const documentList = useDocumentList();
   const teamDocuments = useTeamDocuments(selectedTeam?.id ?? null);
   const createDocument = useCreateDocument();
@@ -43,7 +45,8 @@ export function DocumentsPage() {
   const selectWorkspace = (team: Team | null) => setSearchParams(team ? { team: team.id } : {});
   // New, template and imported documents land in the selected team.
   const teamScope = selectedTeam ? { teamId: selectedTeam.id } : {};
-  const actionError = createDocument.error ?? importDocument.error ?? deleteDocument.error;
+  // Delete errors are shown inside the confirmation dialog instead.
+  const actionError = createDocument.error ?? importDocument.error;
 
   const ownedDocuments = documentList.data?.owned ?? [];
   const sharedDocuments = documentList.data?.sharedWithMe ?? [];
@@ -54,10 +57,16 @@ export function DocumentsPage() {
       ? ownedDocuments
       : sharedDocuments;
 
-  function handleDelete(document: DocumentSummary) {
-    if (window.confirm(`Delete "${document.title}"? Everyone with access will lose it too.`)) {
-      deleteDocument.mutate(document.id);
+  function requestDelete(document: DocumentSummary) {
+    deleteDocument.reset();
+    setDocumentPendingDeletion(document);
+  }
+
+  function confirmDelete() {
+    if (!documentPendingDeletion) {
+      return;
     }
+    deleteDocument.mutate(documentPendingDeletion.id, { onSuccess: () => setDocumentPendingDeletion(null) });
   }
 
   return (
@@ -190,7 +199,7 @@ export function DocumentsPage() {
                   isTeamView={selectedTeam !== null}
                   // In the personal list, owned team documents are labelled with their team.
                   teamName={selectedTeam || !document.teamId ? undefined : teamNamesById.get(document.teamId)}
-                  onDelete={document.access === 'owner' ? () => handleDelete(document) : undefined}
+                  onDelete={document.access === 'owner' ? () => requestDelete(document) : undefined}
                 />
               ))}
             </ul>
@@ -214,6 +223,21 @@ export function DocumentsPage() {
           selectWorkspace(team);
         }}
       />
+      <ConfirmDialog
+        isOpen={documentPendingDeletion !== null}
+        title="Delete document?"
+        confirmLabel="Delete"
+        pendingLabel="Deleting…"
+        isPending={deleteDocument.isPending}
+        errorMessage={deleteDocument.error?.message}
+        onConfirm={confirmDelete}
+        onCancel={() => setDocumentPendingDeletion(null)}
+      >
+        <p>
+          <span className="font-medium text-ink">“{documentPendingDeletion?.title}”</span> will be permanently
+          deleted. Everyone it is shared with will lose access too. This cannot be undone.
+        </p>
+      </ConfirmDialog>
       {selectedTeam && (
         <TeamMembersDialog
           team={selectedTeam}

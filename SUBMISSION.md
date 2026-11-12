@@ -31,7 +31,7 @@ All passwords: `demo1234` (the login page also has one-click buttons).
 | Screenshots | [`docs/screenshots/`](docs/screenshots) (also embedded in the README) |
 | Module documentation | [`docs/backend.md`](docs/backend.md), [`docs/frontend.md`](docs/frontend.md), [`docs/database/database.md`](docs/database/database.md) (+ ER diagram), [`docs/testing.md`](docs/testing.md) |
 | Deployment definition | [`render.yaml`](render.yaml) (Render Blueprint: web service + Postgres) |
-| Automated tests | 108 tests, run with `npm test` ([strategy](docs/testing.md)) |
+| Automated tests | 112 tests, run with `npm test` ([strategy](docs/testing.md)) |
 | Original brief | [`docs/assignment-brief.md`](docs/assignment-brief.md) |
 
 ## Status

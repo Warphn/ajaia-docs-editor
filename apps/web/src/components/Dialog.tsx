@@ -1,5 +1,5 @@
 import { X } from 'lucide-react';
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
 interface DialogProps {
@@ -18,6 +18,8 @@ interface DialogProps {
  */
 export function Dialog({ isOpen, onClose, title, description, size = 'default', children }: DialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  // Several dialogs live on one page, so each needs its own title id for aria-labelledby.
+  const titleId = useId();
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -26,6 +28,8 @@ export function Dialog({ isOpen, onClose, title, description, size = 'default', 
     }
     if (isOpen && !dialog.open) {
       dialog.showModal();
+      // showModal focuses the first focusable element (the close button); a child can claim focus instead.
+      dialog.querySelector<HTMLElement>('[data-autofocus]')?.focus();
     } else if (!isOpen && dialog.open) {
       dialog.close();
     }
@@ -35,7 +39,7 @@ export function Dialog({ isOpen, onClose, title, description, size = 'default', 
     <dialog
       ref={dialogRef}
       onClose={onClose}
-      aria-labelledby="dialog-title"
+      aria-labelledby={titleId}
       // Clicking the backdrop (the dialog element itself, outside the panel) closes it.
       onClick={(event) => event.target === dialogRef.current && onClose()}
       className={
@@ -46,7 +50,7 @@ export function Dialog({ isOpen, onClose, title, description, size = 'default', 
       <div className="p-5 sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 id="dialog-title" className="text-lg font-semibold">
+            <h2 id={titleId} className="text-lg font-semibold">
               {title}
             </h2>
             {description && <p className="mt-0.5 text-sm text-ink-muted">{description}</p>}

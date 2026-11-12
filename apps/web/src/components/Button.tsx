@@ -10,7 +10,7 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary: 'bg-primary text-white hover:bg-primary-hover border border-primary',
   secondary: 'bg-sheet text-ink border border-line-strong hover:bg-canvas',
   ghost: 'text-ink-muted hover:text-ink hover:bg-canvas border border-transparent',
-  danger: 'bg-sheet text-danger border border-line-strong hover:bg-danger-soft',
+  danger: 'bg-danger text-white border border-danger hover:bg-danger/90',
 };
 
 export function Button({ variant = 'primary', className = '', type = 'button', ...buttonProps }: ButtonProps) {

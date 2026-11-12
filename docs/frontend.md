@@ -10,7 +10,7 @@ apps/web/src
   auth/         useCurrentUser / useLogin / useLogout, RequireAuth route guard
   hooks/        TanStack Query hooks for documents & shares, useDocumentAutosave
   editor/       TipTap extensions, toolbar
-  components/   Button, Dialog (native <dialog>), ShareDialog, AppHeader, badges…
+  components/   Button, Dialog (native <dialog>), ConfirmDialog, ShareDialog, AppHeader, badges…
   pages/        LoginPage, DocumentsPage, EditorPage (lazy-loaded)
 ```
 
@@ -23,6 +23,10 @@ apps/web/src
 ## Team workspaces ([`DocumentsPage.tsx`](../apps/web/src/pages/DocumentsPage.tsx))
 
 A row of pills above the list switches between **Personal** (the existing *My documents* / *Shared with me* tabs) and each team the user belongs to; **New team** creates one and selects it. In a team, the list shows every document of the team, the member avatars open a dialog to add colleagues by email ([`TeamDialogs.tsx`](../apps/web/src/components/TeamDialogs.tsx)), and **New document**, **From template** and **Import file** create the document in that team. Owned team documents also appear under *My documents* with a team label, so nothing disappears from the personal view. Creating, importing or deleting refreshes both personal and team lists.
+
+## Confirmations
+
+Destructive actions ask inside the app, not with `window.confirm`: [`ConfirmDialog.tsx`](../apps/web/src/components/ConfirmDialog.tsx) builds on the shared native `<dialog>` (focus trap, Esc, backdrop), names the document, puts the initial focus on **Cancel** so a reflexive Enter never deletes anything, and shows a failed delete inside the dialog. Each `Dialog` gets its own title id (`useId`) so several dialogs on one page keep correct accessible names.
 
 ## Autosave ([`use-document-autosave.ts`](../apps/web/src/hooks/use-document-autosave.ts))
 

@@ -26,6 +26,7 @@ Test where the risk is: access control, data integrity and the save loop. UI ren
 | Unit (web) | [`canvas-helpers.test.ts`](../apps/web/src/canvas/canvas-helpers.test.ts) | Page placement/drag math matches Excalidraw's, reset centering, selection export includes bound text and groups, drawing id shared by a selection, restoring dragged elements, save fingerprint ignores non-persistent changes |
 | Unit (web) | [`library-storage.test.ts`](../apps/web/src/canvas/library-storage.test.ts) | Shape library round-trips through browser storage; empty, corrupted or unavailable storage loads as an empty library; a failed save throws so Excalidraw can report it |
 | Unit (web) | [`library-return.test.ts`](../apps/web/src/canvas/library-return.test.ts) | Each tab gets a unique window name (the library site's return target); an existing name is kept |
+| Component (web) | [`ConfirmDialog.test.tsx`](../apps/web/src/components/ConfirmDialog.test.tsx) | Confirm runs the action, Cancel does not, buttons disabled with a pending label while the action runs, failure message shown |
 | Unit (web) | [`use-document-autosave.test.ts`](../apps/web/src/hooks/use-document-autosave.test.ts) | Debounce batching, version chaining, stop on 409, retry after network error |
 
 Integration tests use Fastify's `inject` (no open ports) on the real app built by `buildApp`.
