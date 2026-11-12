@@ -20,6 +20,34 @@ export const users = pgTable('users', {
   createdAt: createdAt(),
 });
 
+/** A project group: its members can see and edit every document created in it. */
+export const teams = pgTable('teams', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  createdBy: uuid('created_by')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: createdAt(),
+});
+
+export const teamMembers = pgTable(
+  'team_members',
+  {
+    teamId: uuid('team_id')
+      .notNull()
+      .references(() => teams.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.teamId, table.userId] }),
+    // "My teams" is looked up by user.
+    index('team_members_user_id_idx').on(table.userId),
+  ],
+);
+
 export const documents = pgTable(
   'documents',
   {
@@ -27,6 +55,8 @@ export const documents = pgTable(
     ownerId: uuid('owner_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
+    // Null for personal documents. Deleting a team keeps its documents with their owners.
+    teamId: uuid('team_id').references(() => teams.id, { onDelete: 'set null' }),
     title: text('title').notNull(),
     contentHtml: text('content_html').notNull().default(''),
     // Incremented on every write; clients send the version they edited to detect concurrent overwrites.
@@ -36,7 +66,10 @@ export const documents = pgTable(
     createdAt: createdAt(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index('documents_owner_id_idx').on(table.ownerId)],
+  (table) => [
+    index('documents_owner_id_idx').on(table.ownerId),
+    index('documents_team_id_idx').on(table.teamId),
+  ],
 );
 
 export const documentShares = pgTable(

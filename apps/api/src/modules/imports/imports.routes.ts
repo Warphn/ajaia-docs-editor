@@ -1,5 +1,6 @@
 import fastifyMultipart from '@fastify/multipart';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
+import { z } from 'zod';
 import { currentUserId, sessionSecurity } from '../../lib/authentication.js';
 import { AppError, badRequest, errorResponseSchema } from '../../lib/errors.js';
 import { documentDetailSchema } from '../documents/document.schemas.js';
@@ -35,10 +36,14 @@ export const importsRoutes: FastifyPluginAsyncZod<ImportsRoutesOptions> = async 
           'bold, italic and lists is preserved. Images and tables are not supported and are dropped/flattened.',
         consumes: ['multipart/form-data'],
         security: sessionSecurity,
+        querystring: z.object({
+          teamId: z.uuid().optional().describe('Create the document in this team; 404 if not a member'),
+        }),
         response: {
           201: documentDetailSchema,
           400: errorResponseSchema,
           401: errorResponseSchema,
+          404: errorResponseSchema,
           413: errorResponseSchema,
           415: errorResponseSchema,
         },
@@ -56,6 +61,7 @@ export const importsRoutes: FastifyPluginAsyncZod<ImportsRoutesOptions> = async 
       const document = await documentsService.createDocument(currentUserId(request), {
         title: converted.title,
         contentHtml: converted.html,
+        teamId: request.query.teamId,
       });
       return reply.status(201).send(document);
     },

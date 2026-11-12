@@ -13,12 +13,20 @@ export interface AccessInput {
   ownerId: string;
   /** Role granted to this user through a share, if any. */
   shareRole: ShareRole | null;
+  /** Whether the user belongs to the team the document was created in. */
+  isTeamMember?: boolean;
 }
 
-/** Returns the user's access level, or null when the document must be invisible to them. */
-export function resolveAccess({ userId, ownerId, shareRole }: AccessInput): DocumentAccess | null {
+/**
+ * Returns the user's access level, or null when the document must be invisible to them.
+ * Team documents are shared work: every member can edit them; the strongest grant wins.
+ */
+export function resolveAccess({ userId, ownerId, shareRole, isTeamMember = false }: AccessInput): DocumentAccess | null {
   if (userId === ownerId) {
     return 'owner';
+  }
+  if (isTeamMember) {
+    return 'editor';
   }
   return shareRole;
 }

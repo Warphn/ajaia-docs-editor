@@ -1,7 +1,7 @@
 import { hash } from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 import type { Database } from './client.js';
-import { documents, documentShares, users } from './schema.js';
+import { documents, documentShares, teamMembers, teams, users } from './schema.js';
 
 /** Shared password for every demo account. Documented in the README and on the login page. */
 export const DEMO_PASSWORD = 'demo1234';
@@ -53,6 +53,8 @@ export async function seedDemoData(db: Database): Promise<void> {
     }
   }
 
+  await seedDemoTeams(db, userIdsByEmail);
+
   if (!aliceWasCreated) {
     return;
   }
@@ -71,4 +73,52 @@ export async function seedDemoData(db: Database): Promise<void> {
     userId: userIdsByEmail.get('bob@ajaia.dev')!,
     role: 'editor',
   });
+}
+
+/** Alice works on two projects with different people: the demo for team workspaces. */
+const DEMO_TEAMS = [
+  {
+    name: 'Mobile app',
+    memberEmails: ['alice@ajaia.dev', 'bob@ajaia.dev'],
+    document: {
+      ownerEmail: 'bob@ajaia.dev',
+      title: 'Mobile app — release checklist',
+      contentHtml:
+        '<h1>Release checklist</h1><p>Shared with everyone in the <strong>Mobile app</strong> team.</p>' +
+        '<ul><li>Freeze the release branch</li><li>Run the smoke tests</li><li>Update the store notes</li></ul>',
+    },
+  },
+  {
+    name: 'Platform',
+    memberEmails: ['alice@ajaia.dev', 'carol@ajaia.dev'],
+    document: {
+      ownerEmail: 'carol@ajaia.dev',
+      title: 'Platform — on-call handbook',
+      contentHtml:
+        '<h1>On-call handbook</h1><p>Shared with everyone in the <strong>Platform</strong> team.</p>' +
+        '<ol><li>Acknowledge the alert</li><li>Check the dashboards</li><li>Write the incident note</li></ol>',
+    },
+  },
+];
+
+/** Creates the demo teams once: only when no team exists yet, so it also runs on an existing database. */
+async function seedDemoTeams(db: Database, userIdsByEmail: Map<string, string>): Promise<void> {
+  const [anyTeam] = await db.select({ id: teams.id }).from(teams).limit(1);
+  if (anyTeam) {
+    return;
+  }
+
+  for (const demoTeam of DEMO_TEAMS) {
+    const creatorId = userIdsByEmail.get(demoTeam.memberEmails[0]!)!;
+    const [team] = await db.insert(teams).values({ name: demoTeam.name, createdBy: creatorId }).returning({ id: teams.id });
+    await db
+      .insert(teamMembers)
+      .values(demoTeam.memberEmails.map((email) => ({ teamId: team!.id, userId: userIdsByEmail.get(email)! })));
+    await db.insert(documents).values({
+      ownerId: userIdsByEmail.get(demoTeam.document.ownerEmail)!,
+      teamId: team!.id,
+      title: demoTeam.document.title,
+      contentHtml: demoTeam.document.contentHtml,
+    });
+  }
 }

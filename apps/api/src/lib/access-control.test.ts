@@ -17,6 +17,22 @@ describe('resolveAccess', () => {
   it('returns null when the user neither owns nor has a share', () => {
     expect(resolveAccess({ userId: OTHER_USER_ID, ownerId: OWNER_ID, shareRole: null })).toBeNull();
   });
+
+  it('lets members of the document team edit it', () => {
+    expect(resolveAccess({ userId: OTHER_USER_ID, ownerId: OWNER_ID, shareRole: null, isTeamMember: true })).toBe(
+      'editor',
+    );
+  });
+
+  it('gives team members edit access even when a share only grants view access', () => {
+    expect(
+      resolveAccess({ userId: OTHER_USER_ID, ownerId: OWNER_ID, shareRole: 'viewer', isTeamMember: true }),
+    ).toBe('editor');
+  });
+
+  it('keeps the owner as owner inside a team', () => {
+    expect(resolveAccess({ userId: OWNER_ID, ownerId: OWNER_ID, shareRole: null, isTeamMember: true })).toBe('owner');
+  });
 });
 
 describe('permission checks', () => {

@@ -1,6 +1,13 @@
 import { and, eq } from 'drizzle-orm';
 import type { Database } from '../../db/client.js';
-import { documentColumns, documents, documentShares, users, type DocumentRecord } from '../../db/schema.js';
+import {
+  documentColumns,
+  documents,
+  documentShares,
+  teamMembers,
+  users,
+  type DocumentRecord,
+} from '../../db/schema.js';
 import { resolveAccess, type DocumentAccess } from '../../lib/access-control.js';
 import { notFound } from '../../lib/errors.js';
 import type { PublicUser } from '../users/user.schemas.js';
@@ -27,6 +34,7 @@ export async function loadAccessibleDocument(
       document: documentColumns,
       owner: { id: users.id, email: users.email, name: users.name },
       shareRole: documentShares.role,
+      teamMemberId: teamMembers.userId,
     })
     .from(documents)
     .innerJoin(users, eq(users.id, documents.ownerId))
@@ -34,10 +42,16 @@ export async function loadAccessibleDocument(
       documentShares,
       and(eq(documentShares.documentId, documents.id), eq(documentShares.userId, userId)),
     )
+    .leftJoin(teamMembers, and(eq(teamMembers.teamId, documents.teamId), eq(teamMembers.userId, userId)))
     .where(eq(documents.id, documentId));
 
   const access = row
-    ? resolveAccess({ userId, ownerId: row.document.ownerId, shareRole: row.shareRole })
+    ? resolveAccess({
+        userId,
+        ownerId: row.document.ownerId,
+        shareRole: row.shareRole,
+        isTeamMember: row.teamMemberId !== null,
+      })
     : null;
 
   if (!row || !access) {

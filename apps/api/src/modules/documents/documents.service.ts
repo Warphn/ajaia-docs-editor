@@ -4,6 +4,7 @@ import { documentColumns, documents, documentShares, users, type DocumentRecord 
 import { canDelete, canEdit, type DocumentAccess } from '../../lib/access-control.js';
 import { badRequest, conflict, forbidden } from '../../lib/errors.js';
 import { sanitizeDocumentHtml } from '../../lib/sanitize-html.js';
+import { loadMemberTeam } from '../teams/team-membership.js';
 import { findTemplate } from '../templates/template-catalog.js';
 import type { PublicUser } from '../users/user.schemas.js';
 import { loadAccessibleDocument } from './document-access.js';
@@ -19,6 +20,8 @@ export interface CreateDocumentInput {
   title?: string | undefined;
   contentHtml?: string | undefined;
   templateId?: string | undefined;
+  /** Creates the document inside this team (the user must be a member). */
+  teamId?: string | undefined;
 }
 
 const ownerColumns = { id: users.id, email: users.email, name: users.name };
@@ -46,16 +49,32 @@ export function createDocumentsService(db: Database) {
     };
   }
 
+  /** Every document created in the team, by any member; members can edit all of them. */
+  async function listForTeam(userId: string, teamId: string): Promise<DocumentSummary[]> {
+    await loadMemberTeam(db, userId, teamId);
+    const rows = await db
+      .select({ document: documentColumns, owner: ownerColumns })
+      .from(documents)
+      .innerJoin(users, eq(users.id, documents.ownerId))
+      .where(eq(documents.teamId, teamId))
+      .orderBy(desc(documents.updatedAt));
+    return rows.map((row) => toSummary(row.document, row.owner, row.document.ownerId === userId ? 'owner' : 'editor'));
+  }
+
   async function createDocument(userId: string, input: CreateDocumentInput): Promise<DocumentDetail> {
     const template = input.templateId === undefined ? undefined : findTemplate(input.templateId);
     if (input.templateId !== undefined && !template) {
       throw badRequest(`Unknown template "${input.templateId}".`);
+    }
+    if (input.teamId !== undefined) {
+      await loadMemberTeam(db, userId, input.teamId);
     }
 
     const [created] = await db
       .insert(documents)
       .values({
         ownerId: userId,
+        teamId: input.teamId ?? null,
         title: input.title?.trim() || template?.defaultTitle || DEFAULT_DOCUMENT_TITLE,
         contentHtml: sanitizeDocumentHtml(input.contentHtml ?? template?.contentHtml ?? ''),
       })
@@ -104,7 +123,7 @@ export function createDocumentsService(db: Database) {
     await db.delete(documents).where(eq(documents.id, documentId));
   }
 
-  return { listForUser, createDocument, getDocument, updateDocument, deleteDocument };
+  return { listForUser, listForTeam, createDocument, getDocument, updateDocument, deleteDocument };
 }
 
 export type DocumentsService = ReturnType<typeof createDocumentsService>;
@@ -115,6 +134,7 @@ function toSummary(document: DocumentRecord, owner: PublicUser, access: Document
     title: document.title,
     access,
     owner,
+    teamId: document.teamId,
     updatedAt: document.updatedAt.toISOString(),
   };
 }

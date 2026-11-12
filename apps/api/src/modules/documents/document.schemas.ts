@@ -23,6 +23,7 @@ export const documentSummarySchema = z.object({
   title: z.string(),
   access: documentAccessSchema,
   owner: publicUserSchema,
+  teamId: z.uuid().nullable().describe('Team the document was created in; null for personal documents'),
   updatedAt: z.string().describe('ISO 8601 timestamp'),
 });
 
@@ -40,6 +41,7 @@ export const documentListSchema = z.object({
 export const createDocumentBodySchema = z.object({
   title: titleSchema.optional().describe(`Defaults to the template's title, or "${DEFAULT_DOCUMENT_TITLE}"`),
   templateId: z.string().optional().describe('Start from a template (ids from GET /api/templates)'),
+  teamId: z.uuid().optional().describe('Create the document in this team (ids from GET /api/teams); 404 if not a member'),
 });
 
 export const updateDocumentBodySchema = z

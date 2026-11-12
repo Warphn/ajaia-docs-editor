@@ -22,6 +22,8 @@ import { createDocumentsService } from './modules/documents/documents.service.js
 import { importsRoutes } from './modules/imports/imports.routes.js';
 import { sharesRoutes } from './modules/shares/shares.routes.js';
 import { createSharesService } from './modules/shares/shares.service.js';
+import { teamsRoutes } from './modules/teams/teams.routes.js';
+import { createTeamsService } from './modules/teams/teams.service.js';
 import { templatesRoutes } from './modules/templates/templates.routes.js';
 
 export interface AppOptions {
@@ -55,6 +57,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
         { name: 'auth', description: 'Sign in / sign out (seeded demo accounts)' },
         { name: 'documents', description: 'Create, open, edit, rename and delete documents' },
         { name: 'sharing', description: 'Grant, change and revoke access to a document' },
+        { name: 'teams', description: 'Project teams: members can open and edit every document created in the team' },
         { name: 'templates', description: 'Starting points for common tech-team documents' },
         { name: 'canvas', description: 'Whiteboard around the document page (drawings, page position)' },
         { name: 'health', description: 'Service status' },
@@ -78,6 +81,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
   await app.register(documentsRoutes, { documentsService });
   await app.register(importsRoutes, { documentsService });
   await app.register(sharesRoutes, { sharesService });
+  await app.register(teamsRoutes, { teamsService: createTeamsService(options.db), documentsService });
   await app.register(templatesRoutes);
   await app.register(canvasRoutes, { canvasService: createCanvasService(options.db) });
 
