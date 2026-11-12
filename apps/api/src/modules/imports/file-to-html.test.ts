@@ -23,6 +23,14 @@ describe('convertFileToHtml', () => {
     expect(html).toContain('<ol>');
   });
 
+  it('turns ```mermaid fences into diagram blocks and keeps other code blocks as code', async () => {
+    const markdown = '```mermaid\nflowchart LR\n  A --> B\n```\n\n```ts\nconst x = 1;\n```';
+    const { html } = await convertFileToHtml('design.md', Buffer.from(markdown));
+
+    expect(html).toContain('<div data-type="mermaid" data-source="flowchart LR\n  A --&gt; B"></div>');
+    expect(html).toContain('<pre><code class="language-ts">const x = 1;\n</code></pre>');
+  });
+
   it('converts a .docx file keeping bold text', async () => {
     const docx = await buildDocx(BOLD_AND_PLAIN_PARAGRAPH_XML);
 

@@ -10,6 +10,7 @@ import {
   Strikethrough,
   Underline,
   Undo2,
+  Workflow,
   type LucideIcon,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -86,6 +87,17 @@ export function EditorToolbar({ editor, children }: { editor: Editor; children?:
       <ToolbarButton icon={ListOrdered} label="Numbered list" isActive={state.isOrderedList} onClick={() => editor.chain().focus().toggleOrderedList().run()} />
       <ToolbarButton icon={Quote} label="Quote" isActive={state.isBlockquote} onClick={() => editor.chain().focus().toggleBlockquote().run()} />
       <ToolbarButton icon={Code2} label="Code block" isActive={state.isCodeBlock} onClick={() => editor.chain().focus().toggleCodeBlock().run()} />
+      <Divider />
+      <button
+        type="button"
+        title="Insert a Mermaid diagram (flowchart, sequence, ER…)"
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={() => editor.chain().focus().insertMermaidDiagram().run()}
+        className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-sm text-ink-muted transition-colors hover:bg-canvas hover:text-ink"
+      >
+        <Workflow size={17} aria-hidden="true" />
+        Diagram
+      </button>
       {children}
     </div>
   );

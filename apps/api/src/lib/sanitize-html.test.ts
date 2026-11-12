@@ -33,4 +33,10 @@ describe('sanitizeDocumentHtml', () => {
 
     expect(sanitizeDocumentHtml(html)).toBe('<div data-type="mermaid" data-source="graph TD; A--&gt;B">x</div>');
   });
+
+  it('preserves multi-line diagram source with quotes intact', () => {
+    const html = '<div data-type="mermaid" data-source="erDiagram\n  DOC ||--o{ SHARE : &quot;shared via&quot;"></div>';
+
+    expect(sanitizeDocumentHtml(html)).toBe(html);
+  });
 });

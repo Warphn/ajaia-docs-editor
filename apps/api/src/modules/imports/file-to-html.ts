@@ -1,6 +1,6 @@
 import path from 'node:path';
 import mammoth from 'mammoth';
-import { marked } from 'marked';
+import { Marked } from 'marked';
 import { badRequest, unsupportedMediaType } from '../../lib/errors.js';
 import { MAX_TITLE_LENGTH } from '../documents/document.schemas.js';
 
@@ -38,7 +38,7 @@ export async function convertFileToHtml(fileName: string, fileContent: Buffer): 
 
 const CONVERTERS: Record<SupportedExtension, (fileContent: Buffer) => Promise<string>> = {
   '.txt': async (fileContent) => plainTextToHtml(fileContent.toString('utf8')),
-  '.md': async (fileContent) => marked.parse(fileContent.toString('utf8'), { async: false }),
+  '.md': async (fileContent) => markdownConverter.parse(fileContent.toString('utf8'), { async: false }),
   '.docx': async (fileContent) => {
     try {
       const result = await mammoth.convertToHtml({ buffer: fileContent });
@@ -48,6 +48,21 @@ const CONVERTERS: Record<SupportedExtension, (fileContent: Buffer) => Promise<st
     }
   },
 };
+
+/**
+ * Markdown converter where ```mermaid fences become diagram blocks (the editor's Mermaid node),
+ * so diagrams written in READMEs and GitHub docs import as diagrams, not as code.
+ */
+const markdownConverter = new Marked({
+  renderer: {
+    code({ text, lang }) {
+      if (lang?.trim().toLowerCase() !== 'mermaid') {
+        return false;
+      }
+      return `<div data-type="mermaid" data-source="${escapeHtml(text)}"></div>\n`;
+    },
+  },
+});
 
 /** Blank lines separate paragraphs; single line breaks inside a paragraph are kept. */
 export function plainTextToHtml(text: string): string {

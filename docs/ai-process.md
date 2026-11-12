@@ -59,11 +59,12 @@ The plan ([architecture](./architecture.md)) split the work into commit-sized st
 | Unit test expecting `titleFromFileName('.md')` to fall back | Test failed: Node treats `.md` as a dotfile with no extension. Replaced with a realistic case | Such a file is already rejected (415) earlier; the test was asserting an impossible path |
 | Header layout | Browser screenshot at 390 px showed the title input squeezed to 0 px. Fixed with a compact header (logo-only, icon sign-out) | Found by verification, not by reading code |
 | Neon as the production database (AI plan) | Replaced by a Render Postgres declared in `render.yaml` when the human hit a Vercel-only sign-up flow at deploy time | Fewer accounts and zero manual wiring outweigh the 30-day expiry of the free database |
+| Rendering diagrams in a dialog opened from inside the editor | Dialog moved to a React portal on `<body>` before it shipped | Inputs inside ProseMirror's DOM can be captured by the editor; a portal keeps the textarea independent |
 | Initial bundle of 732 kB (230 kB gzip) | Editor route lazy-loaded → 316 kB (100 kB gzip) initial | Login and list don't need ProseMirror |
 
 ## How correctness, UX and reliability were verified
 
-- **Automated:** 46 tests (`npm test`): access rules, sanitizer, importers, full sharing flow over HTTP + SQL, import endpoint limits, autosave behavior. See [testing](./testing.md).
+- **Automated:** 60 tests (`npm test`): access rules, sanitizer, importers, full sharing flow over HTTP + SQL, import endpoint limits, autosave behavior. See [testing](./testing.md).
 - **Database parity:** the same integration suite passed on PGlite and on Postgres 17 (Docker), covering both production and local drivers.
 - **Types and build:** strict TypeScript (`noUncheckedIndexedAccess`) and production builds of both apps on every step.
 - **Real browser:** a scripted Chrome walkthrough as two users (owner shares → recipient sees it under "Shared with me", read-only), reload to confirm formatting persists, mobile viewport check, and no unexpected console errors.
@@ -91,6 +92,7 @@ The plan ([architecture](./architecture.md)) split the work into commit-sized st
 | 17:15 | Documentation |
 | 17:30 | Deployed to Render, verified live |
 | 17:40 | Templates (5 tech-team documents) |
+| 17:55 | Mermaid diagrams (editor node, live-preview dialog, Markdown import) |
 
 ## Out of scope, and what's next with 2–4 more hours
 

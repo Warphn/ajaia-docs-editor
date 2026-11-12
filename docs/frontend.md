@@ -43,6 +43,10 @@ Engineering-paper look: the document is a white sheet on a dotted canvas; everyt
 
 Accessibility basics: semantic landmarks, labelled controls and icon buttons, `role="status"` for save state, `role="alert"` for errors, visible focus ring, native `<dialog>` (focus trap + Esc), reduced-motion respected, responsive down to 360 px.
 
+## Diagrams
+
+A custom TipTap node ([`mermaid-diagram-extension.ts`](../apps/web/src/editor/mermaid/mermaid-diagram-extension.ts)) stores only the Mermaid **source** as `<div data-type="mermaid" data-source="…">`; the SVG is rendered on display. Editors open a dialog with source and live preview (debounced 300 ms) and starter examples; invalid syntax shows the parser error instead of breaking the document. Mermaid runs with `securityLevel: "strict"`, is loaded on demand (only when a document contains a diagram), and renders through a queue because it keeps global state.
+
 ## Bundle
 
-The editor route is code-split with `React.lazy`: initial JS ≈ 100 kB gzip; TipTap (≈ 133 kB gzip) loads only when a document is opened.
+The editor route is code-split with `React.lazy`: initial JS ≈ 100 kB gzip; TipTap (≈ 138 kB gzip) loads only when a document is opened, and Mermaid only when a document contains a diagram.

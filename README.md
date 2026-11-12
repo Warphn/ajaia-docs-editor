@@ -20,8 +20,9 @@ To try sharing, sign in as two people in different browsers (or one normal + one
 - **Documents:** create, rename (inline title), edit, delete; reopen with formatting intact.
 - **Templates for tech teams:** start a document from a feature spec, technical design (RFC), client feature presentation, status update for management, or incident postmortem.
 - **Rich text:** headings (H1–H3), bold, italic, underline, strikethrough, bulleted and numbered lists, quotes, code blocks, undo/redo, keyboard shortcuts.
+- **Diagrams as code:** insert a Mermaid diagram (flowchart, sequence, ER…) and edit it with a live preview. ` ```mermaid ` blocks in imported Markdown become diagrams.
 - **Autosave** with a visible status, `Ctrl/Cmd+S`, and protection against overwriting someone else's newer save.
-- **File import:** upload **`.txt`, `.md` or `.docx` (max 5 MB)** to create a new editable document. Headings, emphasis and lists are preserved; images and tables in `.docx` are not supported.
+- **File import:** upload **`.txt`, `.md` or `.docx` (max 5 MB)** to create a new editable document. Headings, emphasis, lists and Mermaid code fences are preserved; images and tables in `.docx` are not supported.
 - **Sharing:** the owner shares by email as **Can edit** or **View only**, changes roles, or removes access. Lists are split into **My documents** and **Shared with me**; viewers get a read-only editor.
 
 ## Run locally
@@ -53,7 +54,7 @@ Configuration: see [`apps/api/.env.example`](apps/api/.env.example) (`DATABASE_U
 npm test
 ```
 
-Runs 54+ tests: API unit and integration tests (on an in-memory Postgres) and web unit tests. Details: [docs/testing.md](docs/testing.md).
+Runs 60 tests: API unit and integration tests (on an in-memory Postgres) and web unit tests. Details: [docs/testing.md](docs/testing.md).
 
 ## API Documentation (Swagger)
 

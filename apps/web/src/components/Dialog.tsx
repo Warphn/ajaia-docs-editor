@@ -1,16 +1,22 @@
 import { X } from 'lucide-react';
 import { useEffect, useRef, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
 interface DialogProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   description?: string;
+  size?: 'default' | 'wide';
   children: ReactNode;
 }
 
-/** Native <dialog> as a modal: focus trapping, Esc to close and the backdrop come from the browser. */
-export function Dialog({ isOpen, onClose, title, description, children }: DialogProps) {
+/**
+ * Native <dialog> as a modal: focus trapping, Esc to close and the backdrop come from the browser.
+ * Rendered in a portal on <body> so dialogs opened from inside the editor (e.g. a diagram node)
+ * are outside ProseMirror's DOM and their inputs don't get captured by the editor.
+ */
+export function Dialog({ isOpen, onClose, title, description, size = 'default', children }: DialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -25,14 +31,17 @@ export function Dialog({ isOpen, onClose, title, description, children }: Dialog
     }
   }, [isOpen]);
 
-  return (
+  return createPortal(
     <dialog
       ref={dialogRef}
       onClose={onClose}
       aria-labelledby="dialog-title"
       // Clicking the backdrop (the dialog element itself, outside the panel) closes it.
       onClick={(event) => event.target === dialogRef.current && onClose()}
-      className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-lg border border-line bg-sheet p-0 text-ink shadow-xl backdrop:bg-ink/30"
+      className={
+        'm-auto w-[calc(100%-2rem)] rounded-lg border border-line bg-sheet p-0 text-ink shadow-xl backdrop:bg-ink/30 ' +
+        (size === 'wide' ? 'max-w-5xl' : 'max-w-lg')
+      }
     >
       <div className="p-5 sm:p-6">
         <div className="flex items-start justify-between gap-4">
@@ -53,6 +62,7 @@ export function Dialog({ isOpen, onClose, title, description, children }: Dialog
         </div>
         <div className="mt-5">{children}</div>
       </div>
-    </dialog>
+    </dialog>,
+    document.body,
   );
 }

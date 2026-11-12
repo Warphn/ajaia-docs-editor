@@ -63,5 +63,10 @@ Each entry: decision, alternatives considered, tradeoff, reason.
 - **Tradeoff:** Adding a template needs a deploy.
 - **Reason:** Five curated templates cover the recurring tech-team documents (spec, RFC, client announcement, management update, postmortem). In code they are reviewed like any change and a unit test guarantees each one renders exactly in the editor. User-defined templates ("save as template") are a natural next step.
 
-### 13. Accepted dependency advisories
+### 13. Diagrams as Mermaid source, not drawings
+- **Alternatives:** Embedding Excalidraw (freehand whiteboard); storing rendered SVG/PNG.
+- **Tradeoff:** No freehand drawing; users write a small text syntax (mitigated by starter examples and live preview).
+- **Reason:** Engineers already write Mermaid (GitHub renders it), the source is plain text that survives sanitization and diffs, and the library is loaded on demand. Excalidraw would add ~1–2 MB and a canvas-based data model. Storing only the source means diagrams always re-render with current styles; ` ```mermaid ` fences in imported Markdown become diagrams for free.
+
+### 14. Accepted dependency advisories
 `npm audit` reports moderate advisories in `drizzle-kit`'s bundled esbuild (dev server issue). `drizzle-kit` is a dev-only CLI for generating migrations; it is not part of the running app. Accepted.

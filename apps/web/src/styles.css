@@ -150,6 +150,11 @@
   margin: 2em 0;
 }
 
+.mermaid-diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+
 .document-content p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   color: var(--color-ink-faint);
