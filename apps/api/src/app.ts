@@ -1,4 +1,5 @@
 import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
+import fastifyStatic from '@fastify/static';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
 import {
@@ -85,7 +86,23 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     async () => ({ status: 'ok' as const }),
   );
 
+  if (options.webDistDir) {
+    await registerWebApp(app, options.webDistDir);
+  }
+
   return app;
+}
+
+/** Serves the built React app; unknown non-API paths fall back to index.html for client-side routing. */
+async function registerWebApp(app: FastifyInstance, webDistDir: string) {
+  await app.register(fastifyStatic, { root: webDistDir, wildcard: false });
+
+  app.setNotFoundHandler((request, reply) => {
+    if (request.method === 'GET' && !request.url.startsWith('/api/')) {
+      return reply.sendFile('index.html');
+    }
+    return reply.status(404).send(toErrorBody('NOT_FOUND', `Route ${request.method} ${request.url} not found.`));
+  });
 }
 
 function handleError(error: FastifyError, _request: unknown, reply: import('fastify').FastifyReply) {
