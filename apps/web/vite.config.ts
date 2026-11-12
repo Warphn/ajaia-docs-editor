@@ -6,6 +6,12 @@ const API_DEV_SERVER = 'http://localhost:3000';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  resolve: {
+    // Excalidraw pulls a dependency whose peer range stops at React 18; if npm ever installs a second React
+    // for it, hooks break ("reading 'useState' of null"). Root package.json pins React 19 so only one copy
+    // is installed, and dedupe keeps the bundle on that copy.
+    dedupe: ['react', 'react-dom'],
+  },
   server: {
     port: 5173,
     // Same-origin /api in development, mirroring production where the API serves the built app.

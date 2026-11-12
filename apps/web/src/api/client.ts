@@ -1,4 +1,5 @@
 import type {
+  CanvasScene,
   DocumentChanges,
   DocumentDetail,
   DocumentList,
@@ -20,7 +21,7 @@ export class ApiError extends Error {
   }
 }
 
-type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 async function request<ResponseBody>(method: HttpMethod, path: string, body?: unknown): Promise<ResponseBody> {
   const isFormData = body instanceof FormData;
@@ -78,4 +79,9 @@ export const api = {
     request<void>('DELETE', `/api/documents/${documentId}/shares/${userId}`),
 
   listTemplates: () => request<{ templates: DocumentTemplate[] }>('GET', '/api/templates'),
+
+  getCanvas: (documentId: string) =>
+    request<{ scene: CanvasScene | null }>('GET', `/api/documents/${documentId}/canvas`),
+  saveCanvas: (documentId: string, scene: CanvasScene) =>
+    request<{ scene: CanvasScene }>('PUT', `/api/documents/${documentId}/canvas`, scene),
 };

@@ -30,7 +30,7 @@ export function MermaidDiagramView({ node, editor, updateAttributes, selected }:
         <button
           type="button"
           onClick={() => setIsEditing(true)}
-          className="absolute right-2 top-2 inline-flex items-center gap-1.5 rounded-md border border-line bg-sheet px-2 py-1 text-xs font-medium text-ink-muted opacity-100 shadow-sm hover:text-ink sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
+          className="print-hidden absolute right-2 top-2 inline-flex items-center gap-1.5 rounded-md border border-line bg-sheet px-2 py-1 text-xs font-medium text-ink-muted opacity-100 shadow-sm hover:text-ink sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
         >
           <Pencil size={13} aria-hidden="true" />
           Edit diagram

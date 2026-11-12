@@ -1,3 +1,4 @@
+import Image from '@tiptap/extension-image';
 import { Placeholder } from '@tiptap/extensions';
 import StarterKit from '@tiptap/starter-kit';
 import { MermaidDiagram } from './mermaid/mermaid-diagram-extension';
@@ -14,5 +15,7 @@ export function createEditorExtensions() {
     }),
     Placeholder.configure({ placeholder: 'Start writing…' }),
     MermaidDiagram,
+    // Drawings included from the canvas (SVG data URIs) and pictures from imported .docx files.
+    Image.configure({ allowBase64: true, inline: false, HTMLAttributes: { class: 'document-image' } }),
   ];
 }

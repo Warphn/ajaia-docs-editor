@@ -162,3 +162,78 @@
   height: 0;
   pointer-events: none;
 }
+
+.document-content img.document-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1em auto;
+}
+
+.document-content img.ProseMirror-selectednode {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Excalidraw paints its own background; keep it transparent so the dotted canvas shows through. */
+.canvas-workspace .excalidraw {
+  --default-bg-color: transparent;
+  background: transparent;
+}
+
+/*
+ * Printing / "Save as PDF" outputs the page only: no app chrome, no canvas, no drawings around it,
+ * and the page is laid out normally (the canvas transform is removed).
+ */
+@media print {
+  @page {
+    margin: 16mm;
+  }
+
+  html,
+  body,
+  .canvas-grid {
+    background: #ffffff !important;
+  }
+
+  header,
+  [role="toolbar"],
+  .print-hidden,
+  .excalidraw {
+    display: none !important;
+  }
+
+  .print-root {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .canvas-workspace,
+  .canvas-workspace > div,
+  .canvas-page {
+    position: static !important;
+    transform: none !important;
+    overflow: visible !important;
+    width: auto !important;
+    height: auto !important;
+  }
+
+  .print-page {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .document-content img,
+  .document-content figure,
+  .document-content pre {
+    break-inside: avoid;
+  }
+
+  .ProseMirror-selectednode {
+    outline: none !important;
+  }
+}

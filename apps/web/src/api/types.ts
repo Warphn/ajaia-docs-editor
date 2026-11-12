@@ -41,6 +41,13 @@ export interface DocumentTemplate {
   audience: string;
 }
 
+/** Whiteboard around the page, stored by the API as-is (Excalidraw's own element format). */
+export interface CanvasScene {
+  elements: readonly Record<string, unknown>[];
+  files: Record<string, Record<string, unknown>>;
+  pagePosition: { x: number; y: number };
+}
+
 export interface DocumentChanges {
   title?: string;
   contentHtml?: string;

@@ -6,6 +6,7 @@ export const documentKeys = {
   list: ['documents'] as const,
   detail: (documentId: string) => ['documents', documentId] as const,
   shares: (documentId: string) => ['documents', documentId, 'shares'] as const,
+  canvas: (documentId: string) => ['documents', documentId, 'canvas'] as const,
 };
 
 export function useDocumentList() {
@@ -19,6 +20,17 @@ export function useTemplates({ enabled }: { enabled: boolean }) {
     enabled,
     // Templates ship with the code; they never change while the app is open.
     staleTime: Infinity,
+  });
+}
+
+export function useCanvas(documentId: string, { enabled }: { enabled: boolean }) {
+  return useQuery({
+    queryKey: documentKeys.canvas(documentId),
+    queryFn: () => api.getCanvas(documentId),
+    enabled,
+    // Loaded once as Excalidraw's initial data; afterwards the canvas component owns the live scene.
+    staleTime: Infinity,
+    gcTime: 0,
   });
 }
 

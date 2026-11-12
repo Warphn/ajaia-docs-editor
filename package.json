@@ -18,6 +18,8 @@
     "typecheck": "npm run typecheck -w apps/api && npm run typecheck -w apps/web"
   },
   "devDependencies": {
-    "concurrently": "^10.0.7"
+    "concurrently": "^10.0.7",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   }
 }
