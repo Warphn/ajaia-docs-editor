@@ -71,7 +71,7 @@ Configuration: see [`apps/api/.env.example`](apps/api/.env.example) (`DATABASE_U
 npm test
 ```
 
-Runs 85 tests: API unit and integration tests (on an in-memory Postgres) and web unit tests. Details: [docs/testing.md](docs/testing.md).
+Runs 91 tests: API unit and integration tests (on an in-memory Postgres) and web unit tests. Details: [docs/testing.md](docs/testing.md).
 
 ## API Documentation (Swagger)
 

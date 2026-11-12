@@ -66,11 +66,12 @@ The plan ([architecture](./architecture.md)) split the work into commit-sized st
 | Text cursor near the bottom of the page | Browser test showed the whole workspace (Excalidraw toolbar, page, controls) shifted up: `overflow: hidden` containers are still programmatically scrollable. Fixed with `overflow: clip` and canvas panning that follows the caret | Visible only in a real browser with a page taller than the viewport |
 | Dropping a drawing on a paragraph | First version used the exact drop position and split "Second paragraph" in two in the exported PDF. Changed to insert between top-level blocks | Found by reading the generated PDF, not the DOM assertions |
 | Verification script false alarms | Two failures came from the test script itself (keys sent to the `<select>` before focus returned to the editor; reading the canvas before the 1 s debounce fired; a regex not expecting `&quot;`). Each was isolated with a minimal reproduction before concluding it was not a product bug | Avoids "fixing" correct code |
+| Bug report: "adding a library from the Excalidraw library site does nothing" | Root cause found by reading Excalidraw 0.18's source before changing code: the return URL carries `#addLibrary=<url>`, which only the `useHandleLibrary` hook processes, and the embed never called it (and had no library storage). Fixed with the hook + a tested `localStorage` adapter; the canvas also opens in drawing mode on return, because view mode hides the library sidebar. Verified in headless Chrome by replaying the return URL with a real catalog library: confirm prompt, 2 items installed, still there after reload | The second problem (hidden sidebar) would have made a correct fix look broken |
 | Initial bundle of 732 kB (230 kB gzip) | Editor route lazy-loaded → 316 kB (100 kB gzip) initial | Login and list don't need ProseMirror |
 
 ## How correctness, UX and reliability were verified
 
-- **Automated:** 85 tests (`npm test`): access rules, sanitizer, importers, full sharing flow over HTTP + SQL, import endpoint limits, autosave behavior. See [testing](./testing.md).
+- **Automated:** 91 tests (`npm test`): access rules, sanitizer, importers, full sharing flow over HTTP + SQL, import endpoint limits, autosave behavior. See [testing](./testing.md).
 - **Database parity:** the same integration suite passed on PGlite and on Postgres 17 (Docker), covering both production and local drivers.
 - **Types and build:** strict TypeScript (`noUncheckedIndexedAccess`) and production builds of both apps on every step.
 - **Real browser:** a scripted Chrome walkthrough as two users (owner shares → recipient sees it under "Shared with me", read-only), reload to confirm formatting persists, mobile viewport check, and no unexpected console errors.

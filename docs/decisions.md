@@ -88,6 +88,13 @@ Each entry: decision, alternatives considered, tradeoff, reason.
 - **Tradeoff:** copies of tagged elements (copy/paste on the canvas) carry the same id and are treated as the same drawing.
 - **Reason:** a calm canvas while writing, and a single button that both includes and removes without a separate table of drawing records.
 
-### 17. Accepted dependency advisories
+### 17. Shape library kept in the browser
+- **Context:** installing a library from libraries.excalidraw.com returned to the app but added nothing: the embed did not handle the `#addLibrary` return URL and had no library storage.
+- **Decision:** use Excalidraw's `useHandleLibrary` with a `localStorage` persistence adapter; open the canvas in drawing mode when the URL carries a library to install.
+- **Alternatives:** store the library per user in the API (new table and endpoints); per document in the canvas scene (a library would have to be reinstalled in every document).
+- **Tradeoff:** the library does not follow the user to another browser or device.
+- **Reason:** the library is a personal toolbox, like the page lock, not document data; browser storage fixes the bug with no API or schema change. Moving it to the API later only means swapping the adapter.
+
+### 18. Accepted dependency advisories
 `npm audit` reports moderate advisories in `drizzle-kit`'s bundled esbuild (dev server issue). `drizzle-kit` is a dev-only CLI for generating migrations; it is not part of the running app. Accepted.
 Excalidraw 0.18.1 pins older versions of `mermaid`/`langium`/`lodash-es` (used only by its optional "Mermaid to Excalidraw" dialog) and `nanoid`. They run in the browser on the user's own input, and the only offered fix is downgrading Excalidraw. Accepted until an upstream release; non-breaking fixes were applied with `npm audit fix`.

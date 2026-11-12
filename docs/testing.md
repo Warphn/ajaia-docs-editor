@@ -23,6 +23,7 @@ Test where the risk is: access control, data integrity and the save loop. UI ren
 | Integration | [`canvas.test.ts`](../apps/api/test/canvas.test.ts) | Canvas load/save, viewer read-only (403), no access (404), invalid scene (400), size limit (413), canvas never included in the document payload |
 | Integration | [`health.test.ts`](../apps/api/test/health.test.ts) | App boots, OpenAPI document is served |
 | Unit (web) | [`canvas-helpers.test.ts`](../apps/web/src/canvas/canvas-helpers.test.ts) | Page placement/drag math matches Excalidraw's, reset centering, selection export includes bound text and groups, drawing id shared by a selection, restoring dragged elements, save fingerprint ignores non-persistent changes |
+| Unit (web) | [`library-storage.test.ts`](../apps/web/src/canvas/library-storage.test.ts) | Shape library round-trips through browser storage; empty, corrupted or unavailable storage loads as an empty library; a failed save throws so Excalidraw can report it |
 | Unit (web) | [`use-document-autosave.test.ts`](../apps/web/src/hooks/use-document-autosave.test.ts) | Debounce batching, version chaining, stop on 409, retry after network error |
 
 Integration tests use Fastify's `inject` (no open ports) on the real app built by `buildApp`.
