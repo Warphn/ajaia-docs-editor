@@ -47,4 +47,4 @@ All passwords: `demo1234` (the login page also has one-click buttons).
 
 **Incomplete / intentionally out of scope:** real-time co-editing and presence (concurrent text saves are detected and the user reloads; the canvas is last-write-wins), comments, version history, Markdown export, sign-up and password reset, file attachments. Included drawings are static images (edit on the canvas and include again).
 
-**Next 2–4 hours:** real-time collaboration with Yjs + Hocuspocus on the existing TipTap editor; version history built on the existing `version` column (one snapshot per save, restore); export to Markdown and PDF.
+**Next 2–4 hours:** real-time collaboration with Yjs + Hocuspocus on the existing TipTap editor; version history built on the existing `version` column (one snapshot per save, restore); export to Markdown; editable included drawings (keep the Excalidraw scene inside the image node).

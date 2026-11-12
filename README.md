@@ -98,7 +98,7 @@ Deliberately out of scope for the 4–6 hour timebox:
 - Sign-up, password reset, organizations/teams.
 - File attachments and uploading arbitrary images (images come from canvas drawings and .docx imports).
 
-**Next, with 2–4 more hours:** real-time collaboration on the existing editor (Yjs + Hocuspocus, which TipTap supports), version history using the existing `version` column (snapshot per save), and export to Markdown/PDF.
+**Next, with 2–4 more hours:** real-time collaboration on the existing editor (Yjs + Hocuspocus, which TipTap supports), version history using the existing `version` column (snapshot per save), export to Markdown, and editable included drawings (keep the Excalidraw scene inside the image node).
 
 ## Documentation
 
