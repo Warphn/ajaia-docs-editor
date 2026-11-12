@@ -90,7 +90,7 @@ Each entry: decision, alternatives considered, tradeoff, reason.
 
 ### 17. Shape library kept in the browser
 - **Context:** installing a library from libraries.excalidraw.com returned to the app but added nothing: the embed did not handle the `#addLibrary` return URL and had no library storage.
-- **Decision:** use Excalidraw's `useHandleLibrary` with a `localStorage` persistence adapter; open the canvas in drawing mode when the URL carries a library to install.
+- **Decision:** use Excalidraw's `useHandleLibrary` with a `localStorage` persistence adapter; name each tab (`window.name`) so the library site returns to the same tab and the library installs live; open the canvas in drawing mode when a page load carries a library to install.
 - **Alternatives:** store the library per user in the API (new table and endpoints); per document in the canvas scene (a library would have to be reinstalled in every document).
 - **Tradeoff:** the library does not follow the user to another browser or device.
 - **Reason:** the library is a personal toolbox, like the page lock, not document data; browser storage fixes the bug with no API or schema change. Moving it to the API later only means swapping the adapter.
