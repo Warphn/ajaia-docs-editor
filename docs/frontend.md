@@ -38,7 +38,7 @@ Status is always visible next to the title: *Saved / Unsaved changes / Saving…
 
 The API decides access; the UI only reflects `document.access`:
 - **viewer:** editor is read-only, toolbar hidden, "View only" badge and a note naming the owner.
-- **editor:** full editing; share dialog lists people but cannot change them.
+- **editor:** full editing; share dialog lists people but cannot change them. Members of the document's team get this access.
 - **owner:** share dialog can add people by email, change roles and remove access.
 
 ## Design

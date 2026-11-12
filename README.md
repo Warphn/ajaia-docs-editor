@@ -36,6 +36,8 @@ To try sharing, sign in as two people in different browsers (or one normal + one
 | ![Editor with formatting and autosave](docs/screenshots/editor.png) | ![Share dialog with roles](docs/screenshots/share-dialog.png) |
 | **Shared with me** (recipient's view) | **View-only** access |
 | ![Shared with me list](docs/screenshots/shared-with-me.png) | ![Read-only editor for viewers](docs/screenshots/view-only.png) |
+| **Team workspace** (one person, several projects) | **Team members** (add by email) |
+| ![Team workspace with its documents](docs/screenshots/team-workspace.png) | ![Team members dialog](docs/screenshots/team-members.png) |
 | **Writing mode: A4 page with page-break guides** | **Drawing mode: drag a drawing onto the page** |
 | ![A4 page with page-break guides](docs/screenshots/page-guides.png) | ![Dragging a drawing onto the page](docs/screenshots/drawing-drop.png) |
 | **Canvas: drawings around the page** | **Include / remove toggle** |

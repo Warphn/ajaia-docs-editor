@@ -49,7 +49,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
       info: {
         title: 'Ajaia Docs API',
         description:
-          'REST API for Ajaia Docs: documents, sharing, file import and templates. ' +
+          'REST API for Ajaia Docs: documents, sharing, team workspaces, file import and templates. ' +
           'Authentication uses an httpOnly session cookie set by POST /api/auth/login.',
         version: '1.0.0',
       },
