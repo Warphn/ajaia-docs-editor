@@ -10,7 +10,14 @@ import {
 } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import type { Database } from './db/client.js';
+import { authenticationPlugin, SESSION_COOKIE_NAME } from './lib/authentication.js';
 import { AppError, type ErrorResponse } from './lib/errors.js';
+import { authRoutes } from './modules/auth/auth.routes.js';
+import { createAuthService } from './modules/auth/auth.service.js';
+import { documentsRoutes } from './modules/documents/documents.routes.js';
+import { createDocumentsService } from './modules/documents/documents.service.js';
+import { sharesRoutes } from './modules/shares/shares.routes.js';
+import { createSharesService } from './modules/shares/shares.service.js';
 
 export interface AppOptions {
   db: Database;
@@ -40,12 +47,29 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
         version: '1.0.0',
       },
       tags: [
+        { name: 'auth', description: 'Sign in / sign out (seeded demo accounts)' },
+        { name: 'documents', description: 'Create, open, edit, rename and delete documents' },
+        { name: 'sharing', description: 'Grant, change and revoke access to a document' },
         { name: 'health', description: 'Service status' },
       ],
+      components: {
+        securitySchemes: {
+          sessionCookie: { type: 'apiKey', in: 'cookie', name: SESSION_COOKIE_NAME },
+        },
+      },
     },
     transform: jsonSchemaTransform,
   });
   await app.register(fastifySwaggerUi, { routePrefix: SWAGGER_UI_PATH });
+  await app.register(authenticationPlugin, { jwtSecret: options.jwtSecret });
+
+  const authService = createAuthService(options.db);
+  const documentsService = createDocumentsService(options.db);
+  const sharesService = createSharesService(options.db);
+
+  await app.register(authRoutes, { authService, isProduction: options.isProduction });
+  await app.register(documentsRoutes, { documentsService });
+  await app.register(sharesRoutes, { sharesService });
 
   app.withTypeProvider<ZodTypeProvider>().get(
     '/api/health',
