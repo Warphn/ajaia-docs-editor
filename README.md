@@ -25,6 +25,16 @@ To try sharing, sign in as two people in different browsers (or one normal + one
 - **File import:** upload **`.txt`, `.md` or `.docx` (max 5 MB)** to create a new editable document. Headings, emphasis, lists and Mermaid code fences are preserved; images and tables in `.docx` are not supported.
 - **Sharing:** the owner shares by email as **Can edit** or **View only**, changes roles, or removes access. Lists are split into **My documents** and **Shared with me**; viewers get a read-only editor.
 
+## Screenshots
+
+| Editor | Sharing |
+|---|---|
+| ![Editor with formatting and autosave](docs/screenshots/editor.png) | ![Share dialog with roles](docs/screenshots/share-dialog.png) |
+| **Shared with me** (recipient's view) | **View-only** access |
+| ![Shared with me list](docs/screenshots/shared-with-me.png) | ![Read-only editor for viewers](docs/screenshots/view-only.png) |
+| **Templates** | **Mermaid diagrams** |
+| ![Template gallery](docs/screenshots/templates.png) | ![Diagram editor with live preview](docs/screenshots/diagram-editor.png) |
+
 ## Run locally
 
 Requirements: **Node.js 20+** (22 recommended). No database setup: an embedded Postgres (PGlite) is used when `DATABASE_URL` is empty.
@@ -97,6 +107,7 @@ Deliberately out of scope for the 4–6 hour timebox:
 | [Testing](docs/testing.md) | Strategy, what each suite proves, running against real Postgres |
 | [AI workflow](docs/ai-process.md) | Tools, prompts, what AI sped up, what was changed, verification |
 | [Assignment brief](docs/assignment-brief.md) | Original requirements |
+| [SUBMISSION.md](SUBMISSION.md) | What is included, test accounts, status |
 
 ## Project structure
 

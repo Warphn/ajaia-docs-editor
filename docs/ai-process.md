@@ -68,7 +68,7 @@ The plan ([architecture](./architecture.md)) split the work into commit-sized st
 - **Database parity:** the same integration suite passed on PGlite and on Postgres 17 (Docker), covering both production and local drivers.
 - **Types and build:** strict TypeScript (`noUncheckedIndexedAccess`) and production builds of both apps on every step.
 - **Real browser:** a scripted Chrome walkthrough as two users (owner shares → recipient sees it under "Shared with me", read-only), reload to confirm formatting persists, mobile viewport check, and no unexpected console errors.
-- **Production:** after deploy, the browser walkthrough was re-run against the live URL (two users, share as viewer, reload, read-only check), cleaning up its own test document.
+- **Production:** after each deploy, scripted browser checks ran against the live URL (two users, share as viewer, reload, read-only; create from template, insert and save a diagram), deleting their own test documents afterwards.
 - **Swagger:** checked that every route appears at `/api/docs` with request and error schemas.
 
 ## Assumptions made due to ambiguity
@@ -93,6 +93,7 @@ The plan ([architecture](./architecture.md)) split the work into commit-sized st
 | 17:30 | Deployed to Render, verified live |
 | 17:40 | Templates (5 tech-team documents) |
 | 17:55 | Mermaid diagrams (editor node, live-preview dialog, Markdown import) |
+| 18:05 | Templates and diagrams verified live; SUBMISSION.md, screenshots |
 
 ## Out of scope, and what's next with 2–4 more hours
 
